@@ -39,7 +39,7 @@ function ReportsPage() {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary-soft text-primary">
-                      <FileBarChart2 className="h-4.5 w-4.5" />
+                      <FileBarChart2 className="h-[1.125rem] w-[1.125rem]" />
                     </span>
                     <span className="font-medium">{r.title}</span>
                   </div>

@@ -178,7 +178,7 @@ function SidebarContent({
                   : "text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
               ].join(" ")}
             >
-              <item.icon className={["h-4.5 w-4.5", active ? "text-primary" : ""].join(" ")} />
+              <item.icon className={["h-[1.125rem] w-[1.125rem]", active ? "text-primary" : ""].join(" ")} />
               {item.label}
             </Link>
           );
@@ -189,7 +189,7 @@ function SidebarContent({
           onClick={onLogout}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-destructive"
         >
-          <LogOut className="h-4.5 w-4.5" /> Logout
+          <LogOut className="h-[1.125rem] w-[1.125rem]" /> Logout
         </button>
       </div>
     </>

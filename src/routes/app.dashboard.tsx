@@ -97,7 +97,7 @@ function DashboardPage() {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{s.label}</span>
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary-soft text-primary">
-                <s.icon className="h-4.5 w-4.5" />
+                <s.icon className="h-[1.125rem] w-[1.125rem]" />
               </span>
             </div>
             <div className="mt-3 font-display text-3xl font-bold">{s.value}</div>
