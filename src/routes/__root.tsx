@@ -91,6 +91,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Bhoomitra AI — Smart Farming for a Sustainable Future" },
+      { name: "description", content: "Your AI-powered farming companion for smarter crops, healthier fields, and better harvests. Grow smarter with Bhoomitra AI." },
+      { property: "og:description", content: "Your AI-powered farming companion for smarter crops, healthier fields, and better harvests. Grow smarter with Bhoomitra AI." },
+      { name: "twitter:description", content: "Your AI-powered farming companion for smarter crops, healthier fields, and better harvests. Grow smarter with Bhoomitra AI." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NpYQHUjuWTORlT4s9qEOaXPEhh93/social-images/social-1782824634186-ChatGPT_Image_Jun_30,_2026,_06_33_16_PM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NpYQHUjuWTORlT4s9qEOaXPEhh93/social-images/social-1782824634186-ChatGPT_Image_Jun_30,_2026,_06_33_16_PM.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
