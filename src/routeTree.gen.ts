@@ -16,6 +16,12 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppWeatherRouteImport } from './routes/app.weather'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
+import { Route as AppFarmsRouteImport } from './routes/app.farms'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppComingSoonRouteImport } from './routes/app.coming-soon'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -52,6 +58,36 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWeatherRoute = AppWeatherRouteImport.update({
+  id: '/weather',
+  path: '/weather',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFarmsRoute = AppFarmsRouteImport.update({
+  id: '/farms',
+  path: '/farms',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppComingSoonRoute = AppComingSoonRouteImport.update({
+  id: '/coming-soon',
+  path: '/coming-soon',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -60,6 +96,12 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/app/coming-soon': typeof AppComingSoonRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/farms': typeof AppFarmsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/weather': typeof AppWeatherRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -68,6 +110,12 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/app/coming-soon': typeof AppComingSoonRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/farms': typeof AppFarmsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/weather': typeof AppWeatherRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -78,6 +126,12 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/app/coming-soon': typeof AppComingSoonRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/farms': typeof AppFarmsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/weather': typeof AppWeatherRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -89,9 +143,27 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/signup'
+    | '/app/coming-soon'
+    | '/app/dashboard'
+    | '/app/farms'
+    | '/app/reports'
+    | '/app/settings'
+    | '/app/weather'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/contact' | '/login' | '/signup' | '/app'
+  to:
+    | '/'
+    | '/about'
+    | '/contact'
+    | '/login'
+    | '/signup'
+    | '/app/coming-soon'
+    | '/app/dashboard'
+    | '/app/farms'
+    | '/app/reports'
+    | '/app/settings'
+    | '/app/weather'
+    | '/app'
   id:
     | '__root__'
     | '/'
@@ -100,6 +172,12 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/signup'
+    | '/app/coming-soon'
+    | '/app/dashboard'
+    | '/app/farms'
+    | '/app/reports'
+    | '/app/settings'
+    | '/app/weather'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -163,14 +241,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/weather': {
+      id: '/app/weather'
+      path: '/weather'
+      fullPath: '/app/weather'
+      preLoaderRoute: typeof AppWeatherRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/farms': {
+      id: '/app/farms'
+      path: '/farms'
+      fullPath: '/app/farms'
+      preLoaderRoute: typeof AppFarmsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/coming-soon': {
+      id: '/app/coming-soon'
+      path: '/coming-soon'
+      fullPath: '/app/coming-soon'
+      preLoaderRoute: typeof AppComingSoonRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppComingSoonRoute: typeof AppComingSoonRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppFarmsRoute: typeof AppFarmsRoute
+  AppReportsRoute: typeof AppReportsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppWeatherRoute: typeof AppWeatherRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppComingSoonRoute: AppComingSoonRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppFarmsRoute: AppFarmsRoute,
+  AppReportsRoute: AppReportsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppWeatherRoute: AppWeatherRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
