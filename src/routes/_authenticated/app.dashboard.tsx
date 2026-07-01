@@ -15,8 +15,7 @@ import {
   LineChart,
   Mic,
 } from "lucide-react";
-import { getUser } from "@/lib/auth";
-import { useEffect, useState } from "react";
+import { useUser } from "@/hooks/useUser";
 
 export const Route = createFileRoute("/_authenticated/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Bhoomitra AI" }] }),
@@ -53,11 +52,14 @@ const futureModules = [
 ];
 
 function DashboardPage() {
-  const [name, setName] = useState("there");
-  useEffect(() => {
-    const u = getUser();
-    if (u) setName(u.name.split(" ")[0]);
-  }, []);
+  const { user, profile } = useUser();
+  const fullName =
+    profile?.full_name ||
+    (user?.user_metadata as { full_name?: string; name?: string } | undefined)?.full_name ||
+    (user?.user_metadata as { name?: string } | undefined)?.name ||
+    user?.email?.split("@")[0] ||
+    "there";
+  const name = fullName.split(" ")[0];
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",
