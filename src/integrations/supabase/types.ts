@@ -14,6 +14,139 @@ export type Database = {
   }
   public: {
     Tables: {
+      farm_images: {
+        Row: {
+          created_at: string
+          farm_id: string
+          id: string
+          image_type: string
+          image_url: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id: string
+          id?: string
+          image_type?: string
+          image_url: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string
+          id?: string
+          image_type?: string
+          image_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_images_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farm_water_sources: {
+        Row: {
+          created_at: string
+          farm_id: string
+          id: string
+          water_source: string
+        }
+        Insert: {
+          created_at?: string
+          farm_id: string
+          id?: string
+          water_source: string
+        }
+        Update: {
+          created_at?: string
+          farm_id?: string
+          id?: string
+          water_source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_water_sources_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farms: {
+        Row: {
+          address: string | null
+          area_unit: string
+          created_at: string
+          current_crop: string | null
+          deleted_at: string | null
+          description: string | null
+          district: string
+          farm_name: string
+          farm_type: string | null
+          id: string
+          irrigation_method: string | null
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          pincode: string | null
+          soil_type: string | null
+          state: string
+          total_area: number
+          updated_at: string
+          user_id: string
+          village: string
+        }
+        Insert: {
+          address?: string | null
+          area_unit?: string
+          created_at?: string
+          current_crop?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          district: string
+          farm_name: string
+          farm_type?: string | null
+          id?: string
+          irrigation_method?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          pincode?: string | null
+          soil_type?: string | null
+          state: string
+          total_area: number
+          updated_at?: string
+          user_id: string
+          village: string
+        }
+        Update: {
+          address?: string | null
+          area_unit?: string
+          created_at?: string
+          current_crop?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          district?: string
+          farm_name?: string
+          farm_type?: string | null
+          id?: string
+          irrigation_method?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          pincode?: string | null
+          soil_type?: string | null
+          state?: string
+          total_area?: number
+          updated_at?: string
+          user_id?: string
+          village?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

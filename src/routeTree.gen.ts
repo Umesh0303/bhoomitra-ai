@@ -24,6 +24,10 @@ import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
 import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
 import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
+import { Route as AuthenticatedAppFarmsIndexRouteImport } from './routes/_authenticated/app.farms.index'
+import { Route as AuthenticatedAppFarmsNewRouteImport } from './routes/_authenticated/app.farms.new'
+import { Route as AuthenticatedAppFarmsFarmIdIndexRouteImport } from './routes/_authenticated/app.farms.$farmId.index'
+import { Route as AuthenticatedAppFarmsFarmIdEditRouteImport } from './routes/_authenticated/app.farms.$farmId.edit'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -102,6 +106,30 @@ const AuthenticatedAppComingSoonRoute =
     path: '/coming-soon',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppFarmsIndexRoute =
+  AuthenticatedAppFarmsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAppFarmsRoute,
+  } as any)
+const AuthenticatedAppFarmsNewRoute =
+  AuthenticatedAppFarmsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAppFarmsRoute,
+  } as any)
+const AuthenticatedAppFarmsFarmIdIndexRoute =
+  AuthenticatedAppFarmsFarmIdIndexRouteImport.update({
+    id: '/$farmId/',
+    path: '/$farmId/',
+    getParentRoute: () => AuthenticatedAppFarmsRoute,
+  } as any)
+const AuthenticatedAppFarmsFarmIdEditRoute =
+  AuthenticatedAppFarmsFarmIdEditRouteImport.update({
+    id: '/$farmId/edit',
+    path: '/$farmId/edit',
+    getParentRoute: () => AuthenticatedAppFarmsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,11 +141,15 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
-  '/app/farms': typeof AuthenticatedAppFarmsRoute
+  '/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
   '/app/reports': typeof AuthenticatedAppReportsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/weather': typeof AuthenticatedAppWeatherRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
+  '/app/farms/': typeof AuthenticatedAppFarmsIndexRoute
+  '/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
+  '/app/farms/$farmId/': typeof AuthenticatedAppFarmsFarmIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,11 +160,14 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
-  '/app/farms': typeof AuthenticatedAppFarmsRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/weather': typeof AuthenticatedAppWeatherRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
+  '/app/farms': typeof AuthenticatedAppFarmsIndexRoute
+  '/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
+  '/app/farms/$farmId': typeof AuthenticatedAppFarmsFarmIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -146,11 +181,15 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/_authenticated/app/dashboard': typeof AuthenticatedAppDashboardRoute
-  '/_authenticated/app/farms': typeof AuthenticatedAppFarmsRoute
+  '/_authenticated/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
   '/_authenticated/app/reports': typeof AuthenticatedAppReportsRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
   '/_authenticated/app/weather': typeof AuthenticatedAppWeatherRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
+  '/_authenticated/app/farms/': typeof AuthenticatedAppFarmsIndexRoute
+  '/_authenticated/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
+  '/_authenticated/app/farms/$farmId/': typeof AuthenticatedAppFarmsFarmIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,6 +208,10 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/weather'
     | '/app/'
+    | '/app/farms/new'
+    | '/app/farms/'
+    | '/app/farms/$farmId/edit'
+    | '/app/farms/$farmId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -179,11 +222,14 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/app/coming-soon'
     | '/app/dashboard'
-    | '/app/farms'
     | '/app/reports'
     | '/app/settings'
     | '/app/weather'
     | '/app'
+    | '/app/farms/new'
+    | '/app/farms'
+    | '/app/farms/$farmId/edit'
+    | '/app/farms/$farmId'
   id:
     | '__root__'
     | '/'
@@ -201,6 +247,10 @@ export interface FileRouteTypes {
     | '/_authenticated/app/settings'
     | '/_authenticated/app/weather'
     | '/_authenticated/app/'
+    | '/_authenticated/app/farms/new'
+    | '/_authenticated/app/farms/'
+    | '/_authenticated/app/farms/$farmId/edit'
+    | '/_authenticated/app/farms/$farmId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -320,13 +370,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppComingSoonRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/farms/': {
+      id: '/_authenticated/app/farms/'
+      path: '/'
+      fullPath: '/app/farms/'
+      preLoaderRoute: typeof AuthenticatedAppFarmsIndexRouteImport
+      parentRoute: typeof AuthenticatedAppFarmsRoute
+    }
+    '/_authenticated/app/farms/new': {
+      id: '/_authenticated/app/farms/new'
+      path: '/new'
+      fullPath: '/app/farms/new'
+      preLoaderRoute: typeof AuthenticatedAppFarmsNewRouteImport
+      parentRoute: typeof AuthenticatedAppFarmsRoute
+    }
+    '/_authenticated/app/farms/$farmId/': {
+      id: '/_authenticated/app/farms/$farmId/'
+      path: '/$farmId'
+      fullPath: '/app/farms/$farmId/'
+      preLoaderRoute: typeof AuthenticatedAppFarmsFarmIdIndexRouteImport
+      parentRoute: typeof AuthenticatedAppFarmsRoute
+    }
+    '/_authenticated/app/farms/$farmId/edit': {
+      id: '/_authenticated/app/farms/$farmId/edit'
+      path: '/$farmId/edit'
+      fullPath: '/app/farms/$farmId/edit'
+      preLoaderRoute: typeof AuthenticatedAppFarmsFarmIdEditRouteImport
+      parentRoute: typeof AuthenticatedAppFarmsRoute
+    }
   }
 }
+
+interface AuthenticatedAppFarmsRouteChildren {
+  AuthenticatedAppFarmsNewRoute: typeof AuthenticatedAppFarmsNewRoute
+  AuthenticatedAppFarmsIndexRoute: typeof AuthenticatedAppFarmsIndexRoute
+  AuthenticatedAppFarmsFarmIdEditRoute: typeof AuthenticatedAppFarmsFarmIdEditRoute
+  AuthenticatedAppFarmsFarmIdIndexRoute: typeof AuthenticatedAppFarmsFarmIdIndexRoute
+}
+
+const AuthenticatedAppFarmsRouteChildren: AuthenticatedAppFarmsRouteChildren = {
+  AuthenticatedAppFarmsNewRoute: AuthenticatedAppFarmsNewRoute,
+  AuthenticatedAppFarmsIndexRoute: AuthenticatedAppFarmsIndexRoute,
+  AuthenticatedAppFarmsFarmIdEditRoute: AuthenticatedAppFarmsFarmIdEditRoute,
+  AuthenticatedAppFarmsFarmIdIndexRoute: AuthenticatedAppFarmsFarmIdIndexRoute,
+}
+
+const AuthenticatedAppFarmsRouteWithChildren =
+  AuthenticatedAppFarmsRoute._addFileChildren(
+    AuthenticatedAppFarmsRouteChildren,
+  )
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppComingSoonRoute: typeof AuthenticatedAppComingSoonRoute
   AuthenticatedAppDashboardRoute: typeof AuthenticatedAppDashboardRoute
-  AuthenticatedAppFarmsRoute: typeof AuthenticatedAppFarmsRoute
+  AuthenticatedAppFarmsRoute: typeof AuthenticatedAppFarmsRouteWithChildren
   AuthenticatedAppReportsRoute: typeof AuthenticatedAppReportsRoute
   AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
   AuthenticatedAppWeatherRoute: typeof AuthenticatedAppWeatherRoute
@@ -336,7 +433,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppComingSoonRoute: AuthenticatedAppComingSoonRoute,
   AuthenticatedAppDashboardRoute: AuthenticatedAppDashboardRoute,
-  AuthenticatedAppFarmsRoute: AuthenticatedAppFarmsRoute,
+  AuthenticatedAppFarmsRoute: AuthenticatedAppFarmsRouteWithChildren,
   AuthenticatedAppReportsRoute: AuthenticatedAppReportsRoute,
   AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
   AuthenticatedAppWeatherRoute: AuthenticatedAppWeatherRoute,
