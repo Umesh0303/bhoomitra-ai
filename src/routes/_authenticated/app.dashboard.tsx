@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   Tractor,
   Sprout,
@@ -14,32 +15,21 @@ import {
   FlaskConical,
   LineChart,
   Mic,
+  Layers,
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
+import { listFarms, formatArea } from "@/lib/farms";
 
 export const Route = createFileRoute("/_authenticated/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Bhoomitra AI" }] }),
   component: DashboardPage,
 });
 
-const stats = [
-  { label: "Farms", value: "3", icon: Tractor, hint: "+1 this month" },
-  { label: "Active Crops", value: "7", icon: Sprout, hint: "2 nearing harvest" },
-  { label: "Weather", value: "28°C", icon: CloudSun, hint: "Partly cloudy" },
-  { label: "Recent Activity", value: "12", icon: Activity, hint: "Last 7 days" },
-];
-
 const actions = [
-  { label: "Add Farm", icon: Plus, to: "/app/farms" },
-  { label: "View Reports", icon: FileBarChart2, to: "/app/reports" },
-  { label: "Weather", icon: CloudSun, to: "/app/weather" },
-  { label: "Profile", icon: User, to: "/app/settings" },
-] as const;
-
-const farms = [
-  { name: "Green Acres", location: "Mysuru, KA", area: "5.2 ha", status: "Active" },
-  { name: "Sunrise Plot", location: "Pune, MH", area: "2.0 ha", status: "Planning" },
-  { name: "Riverbend Field", location: "Coimbatore, TN", area: "8.4 ha", status: "Active" },
+  { label: "Add Farm", icon: Plus, to: "/app/farms/new" as const },
+  { label: "View Reports", icon: FileBarChart2, to: "/app/reports" as const },
+  { label: "Weather", icon: CloudSun, to: "/app/weather" as const },
+  { label: "Profile", icon: User, to: "/app/settings" as const },
 ];
 
 const futureModules = [
@@ -53,6 +43,8 @@ const futureModules = [
 
 function DashboardPage() {
   const { user, profile } = useUser();
+  const { data: farms = [] } = useQuery({ queryKey: ["farms"], queryFn: listFarms });
+
   const fullName =
     profile?.full_name ||
     (user?.user_metadata as { full_name?: string; name?: string } | undefined)?.full_name ||
@@ -67,15 +59,38 @@ function DashboardPage() {
     day: "numeric",
   });
 
+  // Normalize area to acres for display total (1 ha = 2.471 ac; 1 sqm ~= 0.000247 ac).
+  const totalAcres = farms.reduce((sum, f) => {
+    const a = Number(f.total_area) || 0;
+    if (f.area_unit === "hectares") return sum + a * 2.471;
+    if (f.area_unit === "sqm") return sum + a * 0.000247;
+    return sum + a;
+  }, 0);
+  const activeCrops = farms.filter((f) => f.current_crop && f.current_crop !== "Empty Field").length;
+  const lastUpdated = farms
+    .map((f) => new Date(f.updated_at).getTime())
+    .sort((a, b) => b - a)[0];
+
+  const stats = [
+    { label: "Total farms", value: String(farms.length), icon: Tractor, hint: farms.length ? "Across your account" : "None yet" },
+    { label: "Total area", value: totalAcres ? `${totalAcres.toFixed(1)} ac` : "0", icon: Layers, hint: "Normalized to acres" },
+    { label: "Active crops", value: String(activeCrops), icon: Sprout, hint: activeCrops ? "Tracked in farms" : "Set a current crop" },
+    {
+      label: "Last updated",
+      value: lastUpdated ? new Date(lastUpdated).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—",
+      icon: Activity,
+      hint: "Most recent change",
+    },
+  ];
+
+  const recent = [...farms].slice(0, 5);
+
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-      {/* Welcome */}
       <section className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary to-primary/85 p-6 text-primary-foreground shadow-card sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-primary-foreground/80">
-              {today}
-            </p>
+            <p className="text-xs uppercase tracking-[0.15em] text-primary-foreground/80">{today}</p>
             <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">
               Welcome back, {name} 👋
             </h1>
@@ -84,7 +99,7 @@ function DashboardPage() {
             </p>
           </div>
           <Link
-            to="/app/farms"
+            to="/app/farms/new"
             className="inline-flex h-10 items-center gap-2 rounded-xl bg-card px-4 text-sm font-semibold text-primary shadow-soft hover:bg-card/90"
           >
             <Plus className="h-4 w-4" /> Add Farm
@@ -92,7 +107,6 @@ function DashboardPage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
@@ -108,7 +122,6 @@ function DashboardPage() {
         ))}
       </section>
 
-      {/* Quick actions */}
       <section>
         <h2 className="font-display text-lg font-semibold">Quick actions</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -130,7 +143,6 @@ function DashboardPage() {
         </div>
       </section>
 
-      {/* Recent farms + announcements */}
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-6 shadow-soft lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
@@ -139,45 +151,50 @@ function DashboardPage() {
               View all
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="py-3 pr-4 font-medium">Farm name</th>
-                  <th className="py-3 pr-4 font-medium">Location</th>
-                  <th className="py-3 pr-4 font-medium">Area</th>
-                  <th className="py-3 pr-4 font-medium">Status</th>
-                  <th className="py-3 pr-0 text-right font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {farms.map((f) => (
-                  <tr key={f.name} className="border-b border-border last:border-0">
-                    <td className="py-3 pr-4 font-medium">{f.name}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{f.location}</td>
-                    <td className="py-3 pr-4">{f.area}</td>
-                    <td className="py-3 pr-4">
-                      <span
-                        className={[
-                          "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          f.status === "Active"
-                            ? "bg-primary-soft text-primary"
-                            : "bg-highlight/15 text-highlight-foreground/80",
-                        ].join(" ")}
-                      >
-                        {f.status}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-0 text-right">
-                      <button className="text-sm font-medium text-primary hover:underline">
-                        View
-                      </button>
-                    </td>
+          {recent.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              No farms yet.{" "}
+              <Link to="/app/farms/new" className="font-medium text-primary hover:underline">
+                Add your first farm
+              </Link>
+              .
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="py-3 pr-4 font-medium">Farm name</th>
+                    <th className="py-3 pr-4 font-medium">Location</th>
+                    <th className="py-3 pr-4 font-medium">Area</th>
+                    <th className="py-3 pr-4 font-medium">Crop</th>
+                    <th className="py-3 pr-0 text-right font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {recent.map((f) => (
+                    <tr key={f.id} className="border-b border-border last:border-0">
+                      <td className="py-3 pr-4 font-medium">{f.farm_name}</td>
+                      <td className="py-3 pr-4 text-muted-foreground">
+                        {f.village}, {f.district}
+                      </td>
+                      <td className="py-3 pr-4">{formatArea(f.total_area, f.area_unit)}</td>
+                      <td className="py-3 pr-4">{f.current_crop || "—"}</td>
+                      <td className="py-3 pr-0 text-right">
+                        <Link
+                          to="/app/farms/$farmId"
+                          params={{ farmId: f.id }}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
@@ -191,7 +208,7 @@ function DashboardPage() {
             <li>
               <div className="font-medium">Welcome to Bhoomitra AI</div>
               <p className="mt-1 text-muted-foreground">
-                You're on Version 1 — the foundation. AI modules are coming soon.
+                Add your farms now — AI recommendations arrive in v2.
               </p>
             </li>
             <li>
@@ -204,7 +221,6 @@ function DashboardPage() {
         </div>
       </section>
 
-      {/* Coming soon AI modules */}
       <section>
         <div className="mb-4 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
