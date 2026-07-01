@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Sprout, Bug, FlaskConical, LineChart, TrendingUp, Mic, MessageCircle, BarChart3, Bell } from "lucide-react";
 
-export const Route = createFileRoute("/app/coming-soon")({
+export const Route = createFileRoute("/_authenticated/app/coming-soon")({
   head: () => ({ meta: [{ title: "Coming Soon — Bhoomitra AI" }] }),
   component: ComingSoonPage,
 });

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CloudSun, Wind, Droplets, Thermometer } from "lucide-react";
 import { PagePlaceholder } from "@/components/app/PagePlaceholder";
 
-export const Route = createFileRoute("/app/weather")({
+export const Route = createFileRoute("/_authenticated/app/weather")({
   head: () => ({ meta: [{ title: "Weather — Bhoomitra AI" }] }),
   component: WeatherPage,
 });

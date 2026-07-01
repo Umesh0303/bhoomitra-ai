@@ -10,7 +10,7 @@ import {
   Palette,
 } from "lucide-react";
 
-export const Route = createFileRoute("/app/settings")({
+export const Route = createFileRoute("/_authenticated/app/settings")({
   head: () => ({ meta: [{ title: "Settings — Bhoomitra AI" }] }),
   component: SettingsPage,
 });

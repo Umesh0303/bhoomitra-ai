@@ -13,9 +13,14 @@ import {
   ChevronDown,
   Search,
   Sparkles,
+  User as UserIcon,
+  CreditCard,
+  LifeBuoy,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
-import { clearUser, getUser, type AuthUser } from "@/lib/auth";
+import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/services/authService";
 
 const nav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,37 +33,37 @@ const nav = [
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const [user, setUserState] = useState<AuthUser | null>(null);
+  const { user, profile } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  useEffect(() => {
-    const u = getUser();
-    if (!u) {
-      navigate({ to: "/login" });
-      return;
-    }
-    setUserState(u);
-  }, [navigate]);
+  const displayName =
+    profile?.full_name ||
+    (user?.user_metadata as { full_name?: string; name?: string } | undefined)?.full_name ||
+    (user?.user_metadata as { name?: string } | undefined)?.name ||
+    user?.email?.split("@")[0] ||
+    "there";
+  const email = user?.email ?? "";
+  const avatarUrl =
+    profile?.avatar_url ||
+    (user?.user_metadata as { avatar_url?: string } | undefined)?.avatar_url ||
+    "";
+  const initial = displayName.slice(0, 1).toUpperCase();
 
-  useEffect(() => setMobileOpen(false), [pathname]);
-
-  function handleLogout() {
-    clearUser();
-    navigate({ to: "/login" });
+  async function handleLogout() {
+    setMenuOpen(false);
+    await signOut();
+    toast.success("Signed out");
+    navigate({ to: "/", replace: true });
   }
-
-  if (!user) return null;
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar (desktop) */}
       <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:flex lg:flex-col">
         <SidebarContent pathname={pathname} onLogout={handleLogout} />
       </aside>
 
-      {/* Sidebar (mobile drawer) */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
@@ -72,7 +77,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Topbar */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur sm:px-6">
           <button
             className="grid h-10 w-10 place-items-center rounded-lg border border-border lg:hidden"
@@ -82,7 +86,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="relative hidden flex-1 max-w-md md:block">
+          <div className="relative hidden max-w-md flex-1 md:block">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               placeholder="Search…"
@@ -103,28 +107,50 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 className="flex items-center gap-2 rounded-lg border border-border px-2 py-1.5 text-sm hover:bg-muted"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
               >
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                  {user.name.slice(0, 1).toUpperCase()}
-                </span>
-                <span className="hidden font-medium sm:inline">{user.name}</span>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className="h-7 w-7 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    {initial}
+                  </span>
+                )}
+                <span className="hidden font-medium sm:inline">{displayName}</span>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
               {menuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-popover shadow-card"
+                  className="absolute right-0 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-popover shadow-card"
                   onMouseLeave={() => setMenuOpen(false)}
+                  role="menu"
                 >
-                  <div className="border-b border-border p-3">
-                    <div className="text-sm font-semibold">{user.name}</div>
-                    <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+                  <div className="flex items-center gap-3 border-b border-border p-3">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                        {initial}
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold">{displayName}</div>
+                      <div className="truncate text-xs text-muted-foreground">{email}</div>
+                    </div>
                   </div>
-                  <Link to="/app/settings" className="block px-3 py-2 text-sm hover:bg-muted">
-                    Settings
-                  </Link>
+                  <MenuItem to="/app/settings" icon={UserIcon} label="My Profile" />
+                  <MenuItem to="/app/settings" icon={Settings} label="Settings" />
+                  <MenuItem to="/app/settings" icon={CreditCard} label="Subscription" />
+                  <MenuItem to="/contact" icon={LifeBuoy} label="Help center" />
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-muted"
+                    className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm text-destructive hover:bg-muted"
                   >
                     <LogOut className="h-4 w-4" /> Log out
                   </button>
@@ -137,6 +163,23 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
+  );
+}
+
+function MenuItem({
+  to,
+  icon: Icon,
+  label,
+}: {
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <Link to={to} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted">
+      <Icon className="h-4 w-4 text-muted-foreground" />
+      {label}
+    </Link>
   );
 }
 
@@ -158,7 +201,6 @@ function SidebarContent({
         </Link>
         <button
           className="grid h-8 w-8 place-items-center rounded-lg text-sidebar-foreground/60 lg:hidden"
-          onClick={() => document.dispatchEvent(new CustomEvent("close-sidebar"))}
           aria-label="Close"
         >
           <X className="h-5 w-5" />
