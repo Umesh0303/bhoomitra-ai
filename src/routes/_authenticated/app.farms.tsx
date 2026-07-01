@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Tractor, Plus, MapPin } from "lucide-react";
 import { PagePlaceholder } from "@/components/app/PagePlaceholder";
 
-export const Route = createFileRoute("/app/farms")({
+export const Route = createFileRoute("/_authenticated/app/farms")({
   head: () => ({ meta: [{ title: "My Farms — Bhoomitra AI" }] }),
   component: FarmsPage,
 });

@@ -12,16 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as AppWeatherRouteImport } from './routes/app.weather'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppReportsRouteImport } from './routes/app.reports'
-import { Route as AppFarmsRouteImport } from './routes/app.farms'
-import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
-import { Route as AppComingSoonRouteImport } from './routes/app.coming-soon'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppWeatherRouteImport } from './routes/_authenticated/app.weather'
+import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
+import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authenticated/app.reports'
+import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
+import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
+import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -38,11 +38,6 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -53,56 +48,64 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/_authenticated/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AppWeatherRoute = AppWeatherRouteImport.update({
+const AuthenticatedAppWeatherRoute = AuthenticatedAppWeatherRouteImport.update({
   id: '/weather',
   path: '/weather',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReportsRoute = AppReportsRouteImport.update({
+const AuthenticatedAppSettingsRoute =
+  AuthenticatedAppSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppReportsRoute = AuthenticatedAppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AppFarmsRoute = AppFarmsRouteImport.update({
+const AuthenticatedAppFarmsRoute = AuthenticatedAppFarmsRouteImport.update({
   id: '/farms',
   path: '/farms',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AppDashboardRoute = AppDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppComingSoonRoute = AppComingSoonRouteImport.update({
-  id: '/coming-soon',
-  path: '/coming-soon',
-  getParentRoute: () => AppRoute,
-} as any)
+const AuthenticatedAppDashboardRoute =
+  AuthenticatedAppDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppComingSoonRoute =
+  AuthenticatedAppComingSoonRouteImport.update({
+    id: '/coming-soon',
+    path: '/coming-soon',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/app': typeof AppRouteWithChildren
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/app/coming-soon': typeof AppComingSoonRoute
-  '/app/dashboard': typeof AppDashboardRoute
-  '/app/farms': typeof AppFarmsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/weather': typeof AppWeatherRoute
-  '/app/': typeof AppIndexRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
+  '/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/app/farms': typeof AuthenticatedAppFarmsRoute
+  '/app/reports': typeof AuthenticatedAppReportsRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/weather': typeof AuthenticatedAppWeatherRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,39 +113,39 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/app/coming-soon': typeof AppComingSoonRoute
-  '/app/dashboard': typeof AppDashboardRoute
-  '/app/farms': typeof AppFarmsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/weather': typeof AppWeatherRoute
-  '/app': typeof AppIndexRoute
+  '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
+  '/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/app/farms': typeof AuthenticatedAppFarmsRoute
+  '/app/reports': typeof AuthenticatedAppReportsRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/weather': typeof AuthenticatedAppWeatherRoute
+  '/app': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/app': typeof AppRouteWithChildren
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/app/coming-soon': typeof AppComingSoonRoute
-  '/app/dashboard': typeof AppDashboardRoute
-  '/app/farms': typeof AppFarmsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/settings': typeof AppSettingsRoute
-  '/app/weather': typeof AppWeatherRoute
-  '/app/': typeof AppIndexRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
+  '/_authenticated/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/_authenticated/app/farms': typeof AuthenticatedAppFarmsRoute
+  '/_authenticated/app/reports': typeof AuthenticatedAppReportsRoute
+  '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/_authenticated/app/weather': typeof AuthenticatedAppWeatherRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
-    | '/app'
     | '/contact'
     | '/login'
     | '/signup'
+    | '/app'
     | '/app/coming-soon'
     | '/app/dashboard'
     | '/app/farms'
@@ -168,26 +171,26 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/app'
     | '/contact'
     | '/login'
     | '/signup'
-    | '/app/coming-soon'
-    | '/app/dashboard'
-    | '/app/farms'
-    | '/app/reports'
-    | '/app/settings'
-    | '/app/weather'
-    | '/app/'
+    | '/_authenticated/app'
+    | '/_authenticated/app/coming-soon'
+    | '/_authenticated/app/dashboard'
+    | '/_authenticated/app/farms'
+    | '/_authenticated/app/reports'
+    | '/_authenticated/app/settings'
+    | '/_authenticated/app/weather'
+    | '/_authenticated/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AppRoute: typeof AppRouteWithChildren
   ContactRoute: typeof ContactRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -213,13 +216,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -234,87 +230,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
       path: '/'
       fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/weather': {
-      id: '/app/weather'
+    '/_authenticated/app/weather': {
+      id: '/_authenticated/app/weather'
       path: '/weather'
       fullPath: '/app/weather'
-      preLoaderRoute: typeof AppWeatherRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppWeatherRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/settings': {
-      id: '/app/settings'
+    '/_authenticated/app/settings': {
+      id: '/_authenticated/app/settings'
       path: '/settings'
       fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/reports': {
-      id: '/app/reports'
+    '/_authenticated/app/reports': {
+      id: '/_authenticated/app/reports'
       path: '/reports'
       fullPath: '/app/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppReportsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/farms': {
-      id: '/app/farms'
+    '/_authenticated/app/farms': {
+      id: '/_authenticated/app/farms'
       path: '/farms'
       fullPath: '/app/farms'
-      preLoaderRoute: typeof AppFarmsRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppFarmsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/dashboard': {
-      id: '/app/dashboard'
+    '/_authenticated/app/dashboard': {
+      id: '/_authenticated/app/dashboard'
       path: '/dashboard'
       fullPath: '/app/dashboard'
-      preLoaderRoute: typeof AppDashboardRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppDashboardRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/coming-soon': {
-      id: '/app/coming-soon'
+    '/_authenticated/app/coming-soon': {
+      id: '/_authenticated/app/coming-soon'
       path: '/coming-soon'
       fullPath: '/app/coming-soon'
-      preLoaderRoute: typeof AppComingSoonRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppComingSoonRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
 
-interface AppRouteChildren {
-  AppComingSoonRoute: typeof AppComingSoonRoute
-  AppDashboardRoute: typeof AppDashboardRoute
-  AppFarmsRoute: typeof AppFarmsRoute
-  AppReportsRoute: typeof AppReportsRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppWeatherRoute: typeof AppWeatherRoute
-  AppIndexRoute: typeof AppIndexRoute
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppComingSoonRoute: typeof AuthenticatedAppComingSoonRoute
+  AuthenticatedAppDashboardRoute: typeof AuthenticatedAppDashboardRoute
+  AuthenticatedAppFarmsRoute: typeof AuthenticatedAppFarmsRoute
+  AuthenticatedAppReportsRoute: typeof AuthenticatedAppReportsRoute
+  AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
+  AuthenticatedAppWeatherRoute: typeof AuthenticatedAppWeatherRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppComingSoonRoute: AppComingSoonRoute,
-  AppDashboardRoute: AppDashboardRoute,
-  AppFarmsRoute: AppFarmsRoute,
-  AppReportsRoute: AppReportsRoute,
-  AppSettingsRoute: AppSettingsRoute,
-  AppWeatherRoute: AppWeatherRoute,
-  AppIndexRoute: AppIndexRoute,
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppComingSoonRoute: AuthenticatedAppComingSoonRoute,
+  AuthenticatedAppDashboardRoute: AuthenticatedAppDashboardRoute,
+  AuthenticatedAppFarmsRoute: AuthenticatedAppFarmsRoute,
+  AuthenticatedAppReportsRoute: AuthenticatedAppReportsRoute,
+  AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
+  AuthenticatedAppWeatherRoute: AuthenticatedAppWeatherRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AppRoute: AppRouteWithChildren,
   ContactRoute: ContactRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FileBarChart2, Download } from "lucide-react";
 import { PagePlaceholder } from "@/components/app/PagePlaceholder";
 
-export const Route = createFileRoute("/app/reports")({
+export const Route = createFileRoute("/_authenticated/app/reports")({
   head: () => ({ meta: [{ title: "Reports — Bhoomitra AI" }] }),
   component: ReportsPage,
 });
