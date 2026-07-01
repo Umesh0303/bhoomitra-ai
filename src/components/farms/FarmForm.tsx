@@ -152,21 +152,22 @@ export function FarmForm({
       <Section title="Land details">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Total area" required error={errors.total_area?.message}>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_8rem] gap-2">
               <input
                 type="number"
                 step="0.01"
                 {...register("total_area")}
-                className={`${inputCls} flex-1`}
+                className={`${inputCls} min-w-0`}
                 placeholder="e.g. 5.2"
               />
-              <select {...register("area_unit")} className={`${inputCls} w-32`}>
+              <select {...register("area_unit")} className={inputCls}>
                 <option value="acres">Acres</option>
                 <option value="hectares">Hectares</option>
                 <option value="sqm">Sq. m</option>
               </select>
             </div>
           </Field>
+
           <Field label="Soil type">
             <select {...register("soil_type")} className={inputCls}>
               <option value="">Select soil…</option>
