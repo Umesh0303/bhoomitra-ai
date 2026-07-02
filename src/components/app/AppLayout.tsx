@@ -27,7 +27,7 @@ const nav = [
   { to: "/app/farms", label: "My Farms", icon: Tractor },
   { to: "/app/weather", label: "Weather", icon: CloudSun },
   { to: "/app/reports", label: "Reports", icon: FileBarChart2 },
-  { to: "/app/coming-soon", label: "AI Modules", icon: Sparkles },
+  { to: "/app/assistant", label: "AI Assistant", icon: Sparkles },
   { to: "/app/settings", label: "Settings", icon: Settings },
 ] as const;
 
