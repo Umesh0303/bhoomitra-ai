@@ -16,6 +16,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppWeatherRouteImport } from './routes/_authenticated/app.weather'
@@ -24,6 +25,7 @@ import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
 import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
 import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
+import { Route as AuthenticatedAppAssistantRouteImport } from './routes/_authenticated/app.assistant'
 import { Route as AuthenticatedAppFarmsIndexRouteImport } from './routes/_authenticated/app.farms.index'
 import { Route as AuthenticatedAppFarmsNewRouteImport } from './routes/_authenticated/app.farms.new'
 import { Route as AuthenticatedAppFarmsFarmIdIndexRouteImport } from './routes/_authenticated/app.farms.$farmId.index'
@@ -61,6 +63,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -106,6 +113,12 @@ const AuthenticatedAppComingSoonRoute =
     path: '/coming-soon',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAssistantRoute =
+  AuthenticatedAppAssistantRouteImport.update({
+    id: '/assistant',
+    path: '/assistant',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppFarmsIndexRoute =
   AuthenticatedAppFarmsIndexRouteImport.update({
     id: '/',
@@ -138,7 +151,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/chat': typeof ApiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/app/assistant': typeof AuthenticatedAppAssistantRoute
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
@@ -157,7 +172,9 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/api/chat': typeof ApiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/app/assistant': typeof AuthenticatedAppAssistantRoute
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
@@ -178,7 +195,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/chat': typeof ApiChatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_authenticated/app/assistant': typeof AuthenticatedAppAssistantRoute
   '/_authenticated/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/_authenticated/app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/_authenticated/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
@@ -200,7 +219,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/app'
+    | '/api/chat'
     | '/auth/callback'
+    | '/app/assistant'
     | '/app/coming-soon'
     | '/app/dashboard'
     | '/app/farms'
@@ -219,7 +240,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/signup'
+    | '/api/chat'
     | '/auth/callback'
+    | '/app/assistant'
     | '/app/coming-soon'
     | '/app/dashboard'
     | '/app/reports'
@@ -239,7 +262,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/_authenticated/app'
+    | '/api/chat'
     | '/auth/callback'
+    | '/_authenticated/app/assistant'
     | '/_authenticated/app/coming-soon'
     | '/_authenticated/app/dashboard'
     | '/_authenticated/app/farms'
@@ -260,6 +285,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  ApiChatRoute: typeof ApiChatRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
@@ -312,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -370,6 +403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppComingSoonRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/assistant': {
+      id: '/_authenticated/app/assistant'
+      path: '/assistant'
+      fullPath: '/app/assistant'
+      preLoaderRoute: typeof AuthenticatedAppAssistantRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/farms/': {
       id: '/_authenticated/app/farms/'
       path: '/'
@@ -421,6 +461,7 @@ const AuthenticatedAppFarmsRouteWithChildren =
   )
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAssistantRoute: typeof AuthenticatedAppAssistantRoute
   AuthenticatedAppComingSoonRoute: typeof AuthenticatedAppComingSoonRoute
   AuthenticatedAppDashboardRoute: typeof AuthenticatedAppDashboardRoute
   AuthenticatedAppFarmsRoute: typeof AuthenticatedAppFarmsRouteWithChildren
@@ -431,6 +472,7 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAssistantRoute: AuthenticatedAppAssistantRoute,
   AuthenticatedAppComingSoonRoute: AuthenticatedAppComingSoonRoute,
   AuthenticatedAppDashboardRoute: AuthenticatedAppDashboardRoute,
   AuthenticatedAppFarmsRoute: AuthenticatedAppFarmsRouteWithChildren,
@@ -461,6 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  ApiChatRoute: ApiChatRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
