@@ -48,6 +48,18 @@ export function FarmForm({
 }) {
   const [images, setImages] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [location, setLocation] = useState<Partial<FarmLocation>>({
+    lat: initial?.latitude ?? undefined,
+    lng: initial?.longitude ?? undefined,
+    map_zoom: initial?.map_zoom ?? 15,
+    formatted_address: initial?.formatted_address ?? "",
+    country: initial?.country ?? "",
+    google_place_id: initial?.google_place_id ?? "",
+    village: initial?.village ?? "",
+    district: initial?.district ?? "",
+    state: initial?.state ?? "",
+    postal_code: initial?.pincode ?? "",
+  });
 
   const {
     register,
