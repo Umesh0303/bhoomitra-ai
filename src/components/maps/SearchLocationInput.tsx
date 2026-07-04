@@ -100,7 +100,7 @@ export function SearchLocationInput({ onSelect, placeholder = "Search village, t
         lng: loc.lng(),
         ...parsed,
         zoom: 16,
-      } satisfies FarmLocation & { zoom: number });
+      });
       setQuery(place.formattedAddress ?? s.primary);
       sessionRef.current = null; // end session after selection
     } finally {
