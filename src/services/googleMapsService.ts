@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 /**
  * Single-instance loader for the Google Maps JavaScript API.
  * Uses loading=async + a global callback per the Google guidance.
