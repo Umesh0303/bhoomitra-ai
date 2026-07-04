@@ -79,6 +79,7 @@ export type Database = {
         Row: {
           address: string | null
           area_unit: string
+          country: string | null
           created_at: string
           current_crop: string | null
           deleted_at: string | null
@@ -86,10 +87,13 @@ export type Database = {
           district: string
           farm_name: string
           farm_type: string | null
+          formatted_address: string | null
+          google_place_id: string | null
           id: string
           irrigation_method: string | null
           latitude: number | null
           longitude: number | null
+          map_zoom: number | null
           notes: string | null
           pincode: string | null
           soil_type: string | null
@@ -102,6 +106,7 @@ export type Database = {
         Insert: {
           address?: string | null
           area_unit?: string
+          country?: string | null
           created_at?: string
           current_crop?: string | null
           deleted_at?: string | null
@@ -109,10 +114,13 @@ export type Database = {
           district: string
           farm_name: string
           farm_type?: string | null
+          formatted_address?: string | null
+          google_place_id?: string | null
           id?: string
           irrigation_method?: string | null
           latitude?: number | null
           longitude?: number | null
+          map_zoom?: number | null
           notes?: string | null
           pincode?: string | null
           soil_type?: string | null
@@ -125,6 +133,7 @@ export type Database = {
         Update: {
           address?: string | null
           area_unit?: string
+          country?: string | null
           created_at?: string
           current_crop?: string | null
           deleted_at?: string | null
@@ -132,10 +141,13 @@ export type Database = {
           district?: string
           farm_name?: string
           farm_type?: string | null
+          formatted_address?: string | null
+          google_place_id?: string | null
           id?: string
           irrigation_method?: string | null
           latitude?: number | null
           longitude?: number | null
+          map_zoom?: number | null
           notes?: string | null
           pincode?: string | null
           soil_type?: string | null

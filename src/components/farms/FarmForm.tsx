@@ -14,6 +14,8 @@ import {
   type FarmFormValues,
   type FarmWithRelations,
 } from "@/lib/farms";
+import { FarmLocationPicker } from "@/components/maps/FarmLocationPicker";
+import type { FarmLocation } from "@/types/maps";
 
 const schema = z.object({
   farm_name: z.string().trim().min(1, "Farm name is required").max(100),
@@ -46,6 +48,18 @@ export function FarmForm({
 }) {
   const [images, setImages] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [location, setLocation] = useState<Partial<FarmLocation>>({
+    lat: initial?.latitude ?? undefined,
+    lng: initial?.longitude ?? undefined,
+    map_zoom: initial?.map_zoom ?? 15,
+    formatted_address: initial?.formatted_address ?? "",
+    country: initial?.country ?? "",
+    google_place_id: initial?.google_place_id ?? "",
+    village: initial?.village ?? "",
+    district: initial?.district ?? "",
+    state: initial?.state ?? "",
+    postal_code: initial?.pincode ?? "",
+  });
 
   const {
     register,
@@ -89,10 +103,29 @@ export function FarmForm({
     setImages((prev) => [...prev, ...arr].slice(0, 5));
   };
 
+  const handleLocationChange = (loc: Partial<FarmLocation>) => {
+    setLocation((prev) => ({ ...prev, ...loc }));
+    // Auto-fill related form fields when Google returns them.
+    if (loc.state) setValue("state", loc.state, { shouldDirty: true, shouldValidate: true });
+    if (loc.district) setValue("district", loc.district, { shouldDirty: true, shouldValidate: true });
+    if (loc.village) setValue("village", loc.village, { shouldDirty: true, shouldValidate: true });
+    if (loc.postal_code) setValue("pincode", loc.postal_code, { shouldDirty: true });
+    if (loc.formatted_address) setValue("address", loc.formatted_address, { shouldDirty: true });
+  };
+
   async function submit(values: FormShape) {
     setSubmitting(true);
     try {
-      await onSubmit({ ...values, new_images: images });
+      await onSubmit({
+        ...values,
+        new_images: images,
+        latitude: location.lat ?? null,
+        longitude: location.lng ?? null,
+        formatted_address: location.formatted_address || null,
+        country: location.country || null,
+        google_place_id: location.google_place_id || null,
+        map_zoom: location.map_zoom ?? 15,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -147,6 +180,13 @@ export function FarmForm({
             <input {...register("address")} className={inputCls} placeholder="Street / landmark (optional)" />
           </Field>
         </div>
+      </Section>
+
+      <Section
+        title="Farm location on map"
+        subtitle="Search, use GPS, or tap the map to pin your farm — address fields fill automatically."
+      >
+        <FarmLocationPicker value={location} onChange={handleLocationChange} />
       </Section>
 
       <Section title="Land details">
