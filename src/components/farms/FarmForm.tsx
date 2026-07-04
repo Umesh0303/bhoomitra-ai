@@ -182,6 +182,13 @@ export function FarmForm({
         </div>
       </Section>
 
+      <Section
+        title="Farm location on map"
+        subtitle="Search, use GPS, or tap the map to pin your farm — address fields fill automatically."
+      >
+        <FarmLocationPicker value={location} onChange={handleLocationChange} />
+      </Section>
+
       <Section title="Land details">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Total area" required error={errors.total_area?.message}>
