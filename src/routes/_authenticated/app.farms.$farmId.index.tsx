@@ -16,6 +16,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { getFarm, formatArea, signImages } from "@/lib/farms";
+import { MapPreview } from "@/components/maps/MapPreview";
+import { AddressCard } from "@/components/maps/AddressCard";
 
 export const Route = createFileRoute("/_authenticated/app/farms/$farmId/")({
   head: () => ({ meta: [{ title: "Farm details — Bhoomitra AI" }] }),
@@ -92,6 +94,23 @@ function FarmDetailPage() {
               <Row label="Address" value={farm.address || "—"} full />
             </Grid>
           </InfoCard>
+
+          {farm.latitude != null && farm.longitude != null && (
+            <InfoCard title="Farm location" icon={MapPin}>
+              <div className="space-y-3">
+                <MapPreview
+                  lat={farm.latitude}
+                  lng={farm.longitude}
+                  zoom={farm.map_zoom ?? 15}
+                />
+                <AddressCard
+                  lat={farm.latitude}
+                  lng={farm.longitude}
+                  formattedAddress={farm.formatted_address}
+                />
+              </div>
+            </InfoCard>
+          )}
 
           <InfoCard title="Land details" icon={Layers}>
             <Grid>
