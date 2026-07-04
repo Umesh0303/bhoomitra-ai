@@ -14,6 +14,8 @@ import {
   type FarmFormValues,
   type FarmWithRelations,
 } from "@/lib/farms";
+import { FarmLocationPicker } from "@/components/maps/FarmLocationPicker";
+import type { FarmLocation } from "@/types/maps";
 
 const schema = z.object({
   farm_name: z.string().trim().min(1, "Farm name is required").max(100),
