@@ -35,9 +35,7 @@ export function SearchLocationInput({ onSelect, placeholder = "Search village, t
     debounceRef.current = window.setTimeout(async () => {
       try {
         setBusy(true);
-        const placesLib = (await google.maps.importLibrary(
-          "places",
-        )) as google.maps.PlacesLibrary;
+        const placesLib = (await google.maps.importLibrary("places")) as google.maps.PlacesLibrary;
         const { AutocompleteSuggestion, AutocompleteSessionToken } = placesLib;
         if (!sessionRef.current) {
           sessionRef.current = new AutocompleteSessionToken();
@@ -49,7 +47,7 @@ export function SearchLocationInput({ onSelect, placeholder = "Search village, t
         });
         setItems(
           suggestions
-            .map((s) => {
+            .map((s: google.maps.places.AutocompleteSuggestion): Suggestion | null => {
               const p = s.placePrediction;
               if (!p) return null;
               return {
@@ -57,9 +55,9 @@ export function SearchLocationInput({ onSelect, placeholder = "Search village, t
                 primary: p.mainText?.text ?? p.text?.text ?? "",
                 secondary: p.secondaryText?.text ?? "",
                 prediction: p,
-              } satisfies Suggestion;
+              };
             })
-            .filter(Boolean) as Suggestion[],
+            .filter((x): x is Suggestion => x !== null),
         );
         setOpen(true);
       } catch (e) {
