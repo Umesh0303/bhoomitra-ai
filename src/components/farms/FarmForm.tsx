@@ -103,10 +103,29 @@ export function FarmForm({
     setImages((prev) => [...prev, ...arr].slice(0, 5));
   };
 
+  const handleLocationChange = (loc: Partial<FarmLocation>) => {
+    setLocation((prev) => ({ ...prev, ...loc }));
+    // Auto-fill related form fields when Google returns them.
+    if (loc.state) setValue("state", loc.state, { shouldDirty: true, shouldValidate: true });
+    if (loc.district) setValue("district", loc.district, { shouldDirty: true, shouldValidate: true });
+    if (loc.village) setValue("village", loc.village, { shouldDirty: true, shouldValidate: true });
+    if (loc.postal_code) setValue("pincode", loc.postal_code, { shouldDirty: true });
+    if (loc.formatted_address) setValue("address", loc.formatted_address, { shouldDirty: true });
+  };
+
   async function submit(values: FormShape) {
     setSubmitting(true);
     try {
-      await onSubmit({ ...values, new_images: images });
+      await onSubmit({
+        ...values,
+        new_images: images,
+        latitude: location.lat ?? null,
+        longitude: location.lng ?? null,
+        formatted_address: location.formatted_address || null,
+        country: location.country || null,
+        google_place_id: location.google_place_id || null,
+        map_zoom: location.map_zoom ?? 15,
+      });
     } finally {
       setSubmitting(false);
     }
