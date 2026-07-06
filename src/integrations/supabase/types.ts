@@ -159,6 +159,133 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_chunks: {
+        Row: {
+          char_count: number
+          chunk_hash: string
+          chunk_number: number
+          chunk_text: string
+          created_at: string
+          deleted_at: string | null
+          document_id: string
+          embedding: string | null
+          id: string
+          metadata: Json
+          page_number: number | null
+          token_count: number
+          user_id: string
+        }
+        Insert: {
+          char_count?: number
+          chunk_hash: string
+          chunk_number: number
+          chunk_text: string
+          created_at?: string
+          deleted_at?: string | null
+          document_id: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          page_number?: number | null
+          token_count?: number
+          user_id: string
+        }
+        Update: {
+          char_count?: number
+          chunk_hash?: string
+          chunk_number?: number
+          chunk_text?: string
+          created_at?: string
+          deleted_at?: string | null
+          document_id?: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          page_number?: number | null
+          token_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_documents: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          file_size: number
+          file_type: string
+          filename: string
+          id: string
+          is_latest: boolean
+          metadata: Json
+          parent_document_id: string | null
+          processing_status: Database["public"]["Enums"]["knowledge_processing_status"]
+          storage_path: string
+          total_characters: number
+          total_chunks: number
+          total_tokens: number
+          updated_at: string
+          upload_date: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          file_size: number
+          file_type: string
+          filename: string
+          id?: string
+          is_latest?: boolean
+          metadata?: Json
+          parent_document_id?: string | null
+          processing_status?: Database["public"]["Enums"]["knowledge_processing_status"]
+          storage_path: string
+          total_characters?: number
+          total_chunks?: number
+          total_tokens?: number
+          updated_at?: string
+          upload_date?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          file_size?: number
+          file_type?: string
+          filename?: string
+          id?: string
+          is_latest?: boolean
+          metadata?: Json
+          parent_document_id?: string | null
+          processing_status?: Database["public"]["Enums"]["knowledge_processing_status"]
+          storage_path?: string
+          total_characters?: number
+          total_chunks?: number
+          total_tokens?: number
+          updated_at?: string
+          upload_date?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -204,15 +331,79 @@ export type Database = {
         }
         Relationships: []
       }
+      retrieval_cache: {
+        Row: {
+          created_at: string
+          embedding: string | null
+          hit_count: number
+          id: string
+          query_hash: string
+          query_text: string
+          top_chunk_ids: string[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          embedding?: string | null
+          hit_count?: number
+          id?: string
+          query_hash: string
+          query_text: string
+          top_chunk_ids?: string[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: string | null
+          hit_count?: number
+          id?: string
+          query_hash?: string
+          query_text?: string
+          top_chunk_ids?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      match_knowledge_chunks: {
+        Args: {
+          match_count?: number
+          metadata_filter?: Json
+          query_embedding: string
+          user_uuid: string
+        }
+        Returns: {
+          chunk_number: number
+          chunk_text: string
+          document_id: string
+          document_metadata: Json
+          filename: string
+          id: string
+          metadata: Json
+          page_number: number
+          similarity: number
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      knowledge_processing_status:
+        | "uploading"
+        | "queued"
+        | "virus_check"
+        | "extracting"
+        | "normalizing"
+        | "extracting_metadata"
+        | "chunking"
+        | "deduplicating"
+        | "embedding"
+        | "indexing"
+        | "verifying"
+        | "completed"
+        | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -339,6 +530,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      knowledge_processing_status: [
+        "uploading",
+        "queued",
+        "virus_check",
+        "extracting",
+        "normalizing",
+        "extracting_metadata",
+        "chunking",
+        "deduplicating",
+        "embedding",
+        "indexing",
+        "verifying",
+        "completed",
+        "failed",
+      ],
+    },
   },
 } as const
