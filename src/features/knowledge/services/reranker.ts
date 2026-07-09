@@ -40,7 +40,7 @@ export function rerankCandidates(
     const termScore =
       cTokens.length === 0 ? 0 : overlap / Math.sqrt(cTokens.length + 1);
 
-    const heading = (c.metadata as { heading?: string } | null)?.heading ?? "";
+    const heading = (c.metadata as unknown as { heading?: string } | null)?.heading ?? "";
     const headingTokens = tokenize(heading);
     const headingHit = headingTokens.some((t) => qTokens.has(t)) ? 1 : 0;
 

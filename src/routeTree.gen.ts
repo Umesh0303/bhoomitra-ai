@@ -22,6 +22,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppWeatherRouteImport } from './routes/_authenticated/app.weather'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
 import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authenticated/app.reports'
+import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
 import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
 import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
@@ -96,6 +97,12 @@ const AuthenticatedAppReportsRoute = AuthenticatedAppReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppKnowledgeRoute =
+  AuthenticatedAppKnowledgeRouteImport.update({
+    id: '/knowledge',
+    path: '/knowledge',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppFarmsRoute = AuthenticatedAppFarmsRouteImport.update({
   id: '/farms',
   path: '/farms',
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
+  '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/weather': typeof AuthenticatedAppWeatherRoute
@@ -177,6 +185,7 @@ export interface FileRoutesByTo {
   '/app/assistant': typeof AuthenticatedAppAssistantRoute
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/weather': typeof AuthenticatedAppWeatherRoute
@@ -201,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/_authenticated/app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/_authenticated/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
+  '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/reports': typeof AuthenticatedAppReportsRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
   '/_authenticated/app/weather': typeof AuthenticatedAppWeatherRoute
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/app/coming-soon'
     | '/app/dashboard'
     | '/app/farms'
+    | '/app/knowledge'
     | '/app/reports'
     | '/app/settings'
     | '/app/weather'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/app/assistant'
     | '/app/coming-soon'
     | '/app/dashboard'
+    | '/app/knowledge'
     | '/app/reports'
     | '/app/settings'
     | '/app/weather'
@@ -268,6 +280,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/coming-soon'
     | '/_authenticated/app/dashboard'
     | '/_authenticated/app/farms'
+    | '/_authenticated/app/knowledge'
     | '/_authenticated/app/reports'
     | '/_authenticated/app/settings'
     | '/_authenticated/app/weather'
@@ -382,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppReportsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/knowledge': {
+      id: '/_authenticated/app/knowledge'
+      path: '/knowledge'
+      fullPath: '/app/knowledge'
+      preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/farms': {
       id: '/_authenticated/app/farms'
       path: '/farms'
@@ -465,6 +485,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppComingSoonRoute: typeof AuthenticatedAppComingSoonRoute
   AuthenticatedAppDashboardRoute: typeof AuthenticatedAppDashboardRoute
   AuthenticatedAppFarmsRoute: typeof AuthenticatedAppFarmsRouteWithChildren
+  AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppReportsRoute: typeof AuthenticatedAppReportsRoute
   AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
   AuthenticatedAppWeatherRoute: typeof AuthenticatedAppWeatherRoute
@@ -476,6 +497,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppComingSoonRoute: AuthenticatedAppComingSoonRoute,
   AuthenticatedAppDashboardRoute: AuthenticatedAppDashboardRoute,
   AuthenticatedAppFarmsRoute: AuthenticatedAppFarmsRouteWithChildren,
+  AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppReportsRoute: AuthenticatedAppReportsRoute,
   AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
   AuthenticatedAppWeatherRoute: AuthenticatedAppWeatherRoute,

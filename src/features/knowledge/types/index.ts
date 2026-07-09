@@ -1,4 +1,4 @@
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, Json } from "@/integrations/supabase/types";
 
 export type KnowledgeDocument = Tables<"knowledge_documents">;
 export type KnowledgeChunk = Tables<"knowledge_chunks">;
@@ -23,8 +23,8 @@ export type RetrievedChunk = {
   similarity: number;
   rerank_score: number;
   filename: string;
-  metadata: Record<string, unknown>;
-  document_metadata: Record<string, unknown>;
+  metadata: Json;
+  document_metadata: Json;
 };
 
 export type RetrievalDebug = {

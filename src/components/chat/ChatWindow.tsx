@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MarkdownMessage } from "./MarkdownMessage";
+import { RagDebugPanel } from "@/features/knowledge/components/RagDebugPanel";
+import type { RagDebugData } from "@/features/knowledge/types";
 
 const transport = new DefaultChatTransport({ api: "/api/chat" });
 
@@ -101,6 +103,12 @@ export function ChatWindow() {
                 ) : (
                   <>
                     <MarkdownMessage text={text || "…"} />
+                    <RagDebugPanel
+                      data={
+                        ((m as UIMessage & { metadata?: { rag?: RagDebugData } }).metadata
+                          ?.rag as RagDebugData | undefined) ?? null
+                      }
+                    />
                     {m.id === lastAssistantId && !busy && (
                       <div className="mt-2 flex items-center gap-1 opacity-70 transition group-hover:opacity-100">
                         <button

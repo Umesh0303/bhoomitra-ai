@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Search,
   Sparkles,
+  BookOpen,
   User as UserIcon,
   CreditCard,
   LifeBuoy,
@@ -28,6 +29,7 @@ const nav = [
   { to: "/app/weather", label: "Weather", icon: CloudSun },
   { to: "/app/reports", label: "Reports", icon: FileBarChart2 },
   { to: "/app/assistant", label: "AI Assistant", icon: Sparkles },
+  { to: "/app/knowledge", label: "Farm Knowledge", icon: BookOpen },
   { to: "/app/settings", label: "Settings", icon: Settings },
 ] as const;
 
