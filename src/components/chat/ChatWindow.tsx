@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MarkdownMessage } from "./MarkdownMessage";
+import { RagDebugPanel } from "@/features/knowledge/components/RagDebugPanel";
+import type { RagDebugData } from "@/features/knowledge/types";
 
 const transport = new DefaultChatTransport({ api: "/api/chat" });
 
