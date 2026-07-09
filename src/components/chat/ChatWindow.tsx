@@ -103,6 +103,12 @@ export function ChatWindow() {
                 ) : (
                   <>
                     <MarkdownMessage text={text || "…"} />
+                    <RagDebugPanel
+                      data={
+                        ((m as UIMessage & { metadata?: { rag?: RagDebugData } }).metadata
+                          ?.rag as RagDebugData | undefined) ?? null
+                      }
+                    />
                     {m.id === lastAssistantId && !busy && (
                       <div className="mt-2 flex items-center gap-1 opacity-70 transition group-hover:opacity-100">
                         <button
