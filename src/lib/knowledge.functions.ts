@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Json } from "@/integrations/supabase/types";
 import { z } from "zod";
 import type { RetrievedChunk, RetrievalDebug } from "@/features/knowledge/types";
 import { chunkBlocks } from "@/features/knowledge/services/chunker";
@@ -135,7 +136,7 @@ export const processDocument = createServerFn({ method: "POST" })
         version,
         is_latest: true,
         parent_document_id: data.parent_document_id ?? null,
-        metadata: (data.metadata ?? {}) as Record<string, unknown>,
+        metadata: (data.metadata ?? {}) as unknown as Json,
       })
       .select("*")
       .single();
@@ -186,7 +187,7 @@ export const processDocument = createServerFn({ method: "POST" })
       const finalMetadata = mergeMetadata(data.metadata, detected);
       await supabase
         .from("knowledge_documents")
-        .update({ metadata: finalMetadata as Record<string, unknown> })
+        .update({ metadata: finalMetadata as unknown as Json })
         .eq("id", documentId);
 
       // 5. Dedupe by hash within this document.
@@ -223,7 +224,7 @@ export const processDocument = createServerFn({ method: "POST" })
         embedding: JSON.stringify(vectors[i]) as unknown as string,
         token_count: u.chunk.token_count,
         char_count: u.chunk.char_count,
-        metadata: { heading: u.chunk.heading ?? null } as Record<string, unknown>,
+        metadata: { heading: u.chunk.heading ?? null } as unknown as Json,
       }));
 
       // Insert in batches to avoid oversized payloads.
@@ -337,7 +338,7 @@ export const retrieveContext = createServerFn({ method: "POST" })
         query_embedding: JSON.stringify(queryEmbedding) as unknown as string,
         user_uuid: context.userId,
         match_count: data.candidate_k,
-        metadata_filter: data.metadata_filter as Record<string, unknown>,
+        metadata_filter: data.metadata_filter as unknown as Json,
       },
     );
     const search_ms = Date.now() - tSearch0;
@@ -352,8 +353,8 @@ export const retrieveContext = createServerFn({ method: "POST" })
       similarity: m.similarity as number,
       rerank_score: m.similarity as number,
       filename: m.filename as string,
-      metadata: (m.metadata ?? {}) as Record<string, unknown>,
-      document_metadata: (m.document_metadata ?? {}) as Record<string, unknown>,
+      metadata: (m.metadata ?? {}) as Json,
+      document_metadata: (m.document_metadata ?? {}) as Json,
     }));
 
     const tRerank0 = Date.now();
