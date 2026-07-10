@@ -276,7 +276,7 @@ export const getFarmWeather = createServerFn({ method: "POST" })
       daily: daily as unknown as Record<string, unknown>[],
       alerts: [] as Record<string, unknown>[],
     };
-    await supabase.from("weather_cache").upsert(payload, { onConflict: "farm_id" });
+    await supabase.from("weather_cache").upsert(payload as never, { onConflict: "farm_id" });
 
     return {
       farmId: farm.id,

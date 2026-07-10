@@ -274,7 +274,7 @@ function levelFor(day?: WeatherDaily): { level: "low" | "medium" | "high"; reaso
     level = "high";
   } else if (day.rainProbability >= 50) {
     reasons.push("Rain likely");
-    level = level === "high" ? "high" : "medium";
+    level = "medium";
   }
   if (day.windKph >= 45) {
     reasons.push("Strong winds");

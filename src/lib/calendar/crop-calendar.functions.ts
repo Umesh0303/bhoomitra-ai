@@ -95,7 +95,7 @@ export const updateTaskStatus = createServerFn({ method: "POST" })
     if (data.status === "completed") patch.completed_at = new Date().toISOString();
     if (data.status === "delayed" && data.newDate) patch.task_date = data.newDate;
     if (data.notes !== undefined) patch.notes = data.notes;
-    const { error } = await supabase.from("calendar_tasks").update(patch).eq("id", data.taskId);
+    const { error } = await supabase.from("calendar_tasks").update(patch as never).eq("id", data.taskId);
     if (error) throw error;
     return { ok: true };
   });
