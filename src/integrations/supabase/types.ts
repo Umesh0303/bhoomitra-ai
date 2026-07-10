@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          crop_name: string
+          day_offset: number
+          estimated_duration_days: number | null
+          farm_id: string
+          fertilizer_category: string | null
+          id: string
+          metadata: Json
+          notes: string | null
+          priority: string
+          source: string
+          stage: string
+          stage_id: string | null
+          status: string
+          task_date: string
+          task_name: string
+          task_type: string
+          template_hash: string
+          updated_at: string
+          user_id: string
+          water_requirement: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          crop_name: string
+          day_offset?: number
+          estimated_duration_days?: number | null
+          farm_id: string
+          fertilizer_category?: string | null
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          priority?: string
+          source?: string
+          stage: string
+          stage_id?: string | null
+          status?: string
+          task_date: string
+          task_name: string
+          task_type: string
+          template_hash: string
+          updated_at?: string
+          user_id: string
+          water_requirement?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          crop_name?: string
+          day_offset?: number
+          estimated_duration_days?: number | null
+          farm_id?: string
+          fertilizer_category?: string | null
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          priority?: string
+          source?: string
+          stage?: string
+          stage_id?: string | null
+          status?: string
+          task_date?: string
+          task_name?: string
+          task_type?: string
+          template_hash?: string
+          updated_at?: string
+          user_id?: string
+          water_requirement?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_tasks_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       farm_images: {
         Row: {
           created_at: string
@@ -97,6 +180,7 @@ export type Database = {
           notes: string | null
           pincode: string | null
           soil_type: string | null
+          sowing_date: string | null
           state: string
           total_area: number
           updated_at: string
@@ -124,6 +208,7 @@ export type Database = {
           notes?: string | null
           pincode?: string | null
           soil_type?: string | null
+          sowing_date?: string | null
           state: string
           total_area: number
           updated_at?: string
@@ -151,6 +236,7 @@ export type Database = {
           notes?: string | null
           pincode?: string | null
           soil_type?: string | null
+          sowing_date?: string | null
           state?: string
           total_area?: number
           updated_at?: string
@@ -363,6 +449,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      weather_cache: {
+        Row: {
+          alerts: Json
+          created_at: string
+          current: Json
+          daily: Json
+          expires_at: string
+          farm_id: string
+          fetched_at: string
+          hourly: Json
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerts?: Json
+          created_at?: string
+          current: Json
+          daily?: Json
+          expires_at: string
+          farm_id: string
+          fetched_at?: string
+          hourly?: Json
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerts?: Json
+          created_at?: string
+          current?: Json
+          daily?: Json
+          expires_at?: string
+          farm_id?: string
+          fetched_at?: string
+          hourly?: Json
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weather_cache_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
