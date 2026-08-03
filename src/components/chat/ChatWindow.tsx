@@ -8,22 +8,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { MarkdownMessage } from "./MarkdownMessage";
 import { RagDebugPanel } from "@/features/knowledge/components/RagDebugPanel";
 import type { RagDebugData } from "@/features/knowledge/types";
+import {
+  LazyVoiceControls,
+  LazyVoicePlayer,
+  LazyVoiceSettingsSheet,
+} from "@/components/voice/LazyVoice";
+import { useVoiceConversation } from "@/hooks/useVoiceConversation";
+import { useVoiceSettings } from "@/hooks/useVoiceSettings";
 
 const transport = new DefaultChatTransport({ api: "/api/chat" });
 
 function messageText(message: UIMessage): string {
-  return message.parts
-    .map((part) => (part.type === "text" ? part.text : ""))
-    .join("");
+  return message.parts.map((part) => (part.type === "text" ? part.text : "")).join("");
 }
 
 function friendlyError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err ?? "");
   if (/429|rate/i.test(msg)) return "Too many requests. Please wait a moment and try again.";
-  if (/402|credit/i.test(msg)) return "AI credits are exhausted. Please contact the workspace owner.";
-  if (/401|unauthor|api key|not configured/i.test(msg)) return "AI service is not configured correctly.";
+  if (/402|credit/i.test(msg))
+    return "AI credits are exhausted. Please contact the workspace owner.";
+  if (/401|unauthor|api key|not configured/i.test(msg))
+    return "AI service is not configured correctly.";
   if (/network|fetch|failed/i.test(msg)) return "Network error. Check your connection and retry.";
   return "Something went wrong. Please try again.";
+}
+
+/** Markdown → speakable plain text. */
+function speakableText(markdown: string): string {
+  return markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/\[[^\]]+?\sp\.[^\]]*\]/g, " ")
+    .replace(/[#*_>|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function ChatWindow() {
@@ -36,6 +56,14 @@ export function ChatWindow() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
 
+  const { settings: voiceSettings, update: updateVoiceSettings } = useVoiceSettings();
+  const voice = useVoiceConversation({
+    settings: voiceSettings,
+    onTranscript: setInput,
+    // Voice always goes through the existing message transport.
+    onSubmit: (text) => void sendMessage({ text }),
+  });
+
   const lastAssistantId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === "assistant") return messages[i].id;
@@ -46,6 +74,20 @@ export function ChatWindow() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
+
+  // Speak only fully streamed responses; a newer response cancels the old one.
+  useEffect(() => {
+    if (busy) {
+      voice.stopSpeaking();
+      return;
+    }
+    if (!voiceSettings.enabled || !voiceSettings.autoPlay || !lastAssistantId) return;
+    const last = messages.find((m) => m.id === lastAssistantId);
+    if (!last) return;
+    const text = speakableText(messageText(last));
+    if (text) void voice.speak(lastAssistantId, text);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy, lastAssistantId, messages, voiceSettings.enabled, voiceSettings.autoPlay]);
 
   function handleSend() {
     const text = input.trim();
@@ -93,9 +135,7 @@ export function ChatWindow() {
             <div key={m.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
               <div
                 className={`group max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-soft ${
-                  isUser
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/60 text-foreground"
+                  isUser ? "bg-primary text-primary-foreground" : "bg-muted/60 text-foreground"
                 }`}
               >
                 {isUser ? (
@@ -105,12 +145,13 @@ export function ChatWindow() {
                     <MarkdownMessage text={text || "…"} />
                     <RagDebugPanel
                       data={
-                        ((m as UIMessage & { metadata?: { rag?: RagDebugData } }).metadata
-                          ?.rag as RagDebugData | undefined) ?? null
+                        ((m as UIMessage & { metadata?: { rag?: RagDebugData } }).metadata?.rag as
+                          | RagDebugData
+                          | undefined) ?? null
                       }
                     />
                     {m.id === lastAssistantId && !busy && (
-                      <div className="mt-2 flex items-center gap-1 opacity-70 transition group-hover:opacity-100">
+                      <div className="mt-2 flex flex-wrap items-center gap-1 opacity-70 transition group-hover:opacity-100">
                         <button
                           type="button"
                           onClick={() => copy(text)}
@@ -127,6 +168,14 @@ export function ChatWindow() {
                         >
                           <RefreshCw className="h-3.5 w-3.5" /> Regenerate
                         </button>
+                        {voiceSettings.enabled && (
+                          <LazyVoicePlayer
+                            voice={voice}
+                            messageId={m.id}
+                            text={speakableText(text)}
+                            isActive={m.id === lastAssistantId}
+                          />
+                        )}
                       </div>
                     )}
                   </>
@@ -164,10 +213,20 @@ export function ChatWindow() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Ask about crops, soil, irrigation, pests…"
+            placeholder={
+              voice.state === "listening"
+                ? "Listening… speak now"
+                : "Ask about crops, soil, irrigation, pests…"
+            }
             rows={1}
             className="max-h-40 min-h-[44px] flex-1 resize-none"
             disabled={busy}
+          />
+          {voiceSettings.enabled && <LazyVoiceControls voice={voice} disabled={busy} />}
+          <LazyVoiceSettingsSheet
+            settings={voiceSettings}
+            onChange={updateVoiceSettings}
+            support={voice.support}
           />
           {busy ? (
             <Button type="button" variant="outline" onClick={() => stop()} aria-label="Stop">
@@ -185,7 +244,7 @@ export function ChatWindow() {
           )}
         </div>
         <p className="mt-2 px-1 text-[11px] text-muted-foreground">
-          Enter to send · Shift + Enter for a new line
+          Enter to send · Shift + Enter for a new line · Tap the mic to speak (Esc cancels)
         </p>
       </div>
     </div>
