@@ -8,8 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { MarkdownMessage } from "./MarkdownMessage";
 import { RagDebugPanel } from "@/features/knowledge/components/RagDebugPanel";
 import type { RagDebugData } from "@/features/knowledge/types";
+import {
+  LazyVoiceControls,
+  LazyVoicePlayer,
+  LazyVoiceSettingsSheet,
+} from "@/components/voice/LazyVoice";
+import { useVoiceConversation } from "@/hooks/useVoiceConversation";
+import { useVoiceSettings } from "@/hooks/useVoiceSettings";
 
 const transport = new DefaultChatTransport({ api: "/api/chat" });
+
 
 function messageText(message: UIMessage): string {
   return message.parts
