@@ -154,7 +154,7 @@ export function ChatWindow() {
                       }
                     />
                     {m.id === lastAssistantId && !busy && (
-                      <div className="mt-2 flex items-center gap-1 opacity-70 transition group-hover:opacity-100">
+                      <div className="mt-2 flex flex-wrap items-center gap-1 opacity-70 transition group-hover:opacity-100">
                         <button
                           type="button"
                           onClick={() => copy(text)}
@@ -171,8 +171,17 @@ export function ChatWindow() {
                         >
                           <RefreshCw className="h-3.5 w-3.5" /> Regenerate
                         </button>
+                        {voiceSettings.enabled && (
+                          <LazyVoicePlayer
+                            voice={voice}
+                            messageId={m.id}
+                            text={speakableText(text)}
+                            isActive={m.id === lastAssistantId}
+                          />
+                        )}
                       </div>
                     )}
+
                   </>
                 )}
               </div>
