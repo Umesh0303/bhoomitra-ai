@@ -450,6 +450,42 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_settings: {
+        Row: {
+          auto_play: boolean
+          created_at: string
+          enabled: boolean
+          preferred_language: string
+          speech_pitch: number
+          speech_rate: number
+          updated_at: string
+          user_id: string
+          voice_name: string | null
+        }
+        Insert: {
+          auto_play?: boolean
+          created_at?: string
+          enabled?: boolean
+          preferred_language?: string
+          speech_pitch?: number
+          speech_rate?: number
+          updated_at?: string
+          user_id: string
+          voice_name?: string | null
+        }
+        Update: {
+          auto_play?: boolean
+          created_at?: string
+          enabled?: boolean
+          preferred_language?: string
+          speech_pitch?: number
+          speech_rate?: number
+          updated_at?: string
+          user_id?: string
+          voice_name?: string | null
+        }
+        Relationships: []
+      }
       weather_cache: {
         Row: {
           alerts: Json
