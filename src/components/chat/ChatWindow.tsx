@@ -34,6 +34,19 @@ function friendlyError(err: unknown): string {
   return "Something went wrong. Please try again.";
 }
 
+/** Markdown → speakable plain text. */
+function speakableText(markdown: string): string {
+  return markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/\[[^\]]+?\sp\.[^\]]*\]/g, " ")
+    .replace(/[#*_>|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function ChatWindow() {
   const { messages, sendMessage, regenerate, stop, status, error } = useChat({
     transport,
@@ -43,6 +56,14 @@ export function ChatWindow() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
+
+  const { settings: voiceSettings, update: updateVoiceSettings } = useVoiceSettings();
+  const voice = useVoiceConversation({
+    settings: voiceSettings,
+    onTranscript: setInput,
+    // Voice always goes through the existing message transport.
+    onSubmit: (text) => void sendMessage({ text }),
+  });
 
   const lastAssistantId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -55,12 +76,27 @@ export function ChatWindow() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
 
+  // Speak only fully streamed responses; a newer response cancels the old one.
+  useEffect(() => {
+    if (busy) {
+      voice.stopSpeaking();
+      return;
+    }
+    if (!voiceSettings.enabled || !voiceSettings.autoPlay || !lastAssistantId) return;
+    const last = messages.find((m) => m.id === lastAssistantId);
+    if (!last) return;
+    const text = speakableText(messageText(last));
+    if (text) void voice.speak(lastAssistantId, text);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy, lastAssistantId, messages, voiceSettings.enabled, voiceSettings.autoPlay]);
+
   function handleSend() {
     const text = input.trim();
     if (!text || busy) return;
     void sendMessage({ text });
     setInput("");
   }
+
 
   function handleKey(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
