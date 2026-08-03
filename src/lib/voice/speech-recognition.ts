@@ -1,8 +1,4 @@
-import type {
-  RecognitionHandlers,
-  SpeechRecognitionProvider,
-  VoiceError,
-} from "@/types/voice";
+import type { RecognitionHandlers, SpeechRecognitionProvider, VoiceError } from "@/types/voice";
 
 // Browser-only module. Never import this at module scope from an SSR route —
 // it is loaded lazily after hydration.

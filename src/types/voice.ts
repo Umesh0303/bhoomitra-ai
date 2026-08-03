@@ -1,12 +1,6 @@
 // Provider-agnostic voice types. UI never touches browser APIs directly.
 
-export type VoiceState =
-  | "idle"
-  | "listening"
-  | "processing"
-  | "speaking"
-  | "paused"
-  | "error";
+export type VoiceState = "idle" | "listening" | "processing" | "speaking" | "paused" | "error";
 
 export type VoiceErrorCode =
   | "unsupported"

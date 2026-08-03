@@ -31,10 +31,7 @@ export const initialVoiceState: VoiceMachineState = {
 
 const CAN_FAIL: VoiceState[] = ["listening", "processing", "speaking", "paused"];
 
-export function voiceReducer(
-  current: VoiceMachineState,
-  action: VoiceAction,
-): VoiceMachineState {
+export function voiceReducer(current: VoiceMachineState, action: VoiceAction): VoiceMachineState {
   switch (action.type) {
     case "START_LISTENING":
       if (current.state === "listening") return current;

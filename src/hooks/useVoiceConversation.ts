@@ -164,7 +164,15 @@ export function useVoiceConversation({ settings, onTranscript, onSubmit }: Optio
       });
       recognitionRef.current.abort();
     }
-  }, [fail, finalize, onTranscript, settings.preferredLanguage, stopCapture, stopListening, support.recognition]);
+  }, [
+    fail,
+    finalize,
+    onTranscript,
+    settings.preferredLanguage,
+    stopCapture,
+    stopListening,
+    support.recognition,
+  ]);
 
   const speak = useCallback(
     async (messageId: string, text: string, options?: { replay?: boolean }) => {

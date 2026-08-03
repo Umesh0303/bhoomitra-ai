@@ -18,18 +18,17 @@ import { useVoiceSettings } from "@/hooks/useVoiceSettings";
 
 const transport = new DefaultChatTransport({ api: "/api/chat" });
 
-
 function messageText(message: UIMessage): string {
-  return message.parts
-    .map((part) => (part.type === "text" ? part.text : ""))
-    .join("");
+  return message.parts.map((part) => (part.type === "text" ? part.text : "")).join("");
 }
 
 function friendlyError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err ?? "");
   if (/429|rate/i.test(msg)) return "Too many requests. Please wait a moment and try again.";
-  if (/402|credit/i.test(msg)) return "AI credits are exhausted. Please contact the workspace owner.";
-  if (/401|unauthor|api key|not configured/i.test(msg)) return "AI service is not configured correctly.";
+  if (/402|credit/i.test(msg))
+    return "AI credits are exhausted. Please contact the workspace owner.";
+  if (/401|unauthor|api key|not configured/i.test(msg))
+    return "AI service is not configured correctly.";
   if (/network|fetch|failed/i.test(msg)) return "Network error. Check your connection and retry.";
   return "Something went wrong. Please try again.";
 }
@@ -97,7 +96,6 @@ export function ChatWindow() {
     setInput("");
   }
 
-
   function handleKey(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -137,9 +135,7 @@ export function ChatWindow() {
             <div key={m.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
               <div
                 className={`group max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-soft ${
-                  isUser
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/60 text-foreground"
+                  isUser ? "bg-primary text-primary-foreground" : "bg-muted/60 text-foreground"
                 }`}
               >
                 {isUser ? (
@@ -149,8 +145,9 @@ export function ChatWindow() {
                     <MarkdownMessage text={text || "…"} />
                     <RagDebugPanel
                       data={
-                        ((m as UIMessage & { metadata?: { rag?: RagDebugData } }).metadata
-                          ?.rag as RagDebugData | undefined) ?? null
+                        ((m as UIMessage & { metadata?: { rag?: RagDebugData } }).metadata?.rag as
+                          | RagDebugData
+                          | undefined) ?? null
                       }
                     />
                     {m.id === lastAssistantId && !busy && (
@@ -181,7 +178,6 @@ export function ChatWindow() {
                         )}
                       </div>
                     )}
-
                   </>
                 )}
               </div>
@@ -251,7 +247,6 @@ export function ChatWindow() {
           Enter to send · Shift + Enter for a new line · Tap the mic to speak (Esc cancels)
         </p>
       </div>
-
     </div>
   );
 }
