@@ -217,10 +217,20 @@ export function ChatWindow() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Ask about crops, soil, irrigation, pests…"
+            placeholder={
+              voice.state === "listening"
+                ? "Listening… speak now"
+                : "Ask about crops, soil, irrigation, pests…"
+            }
             rows={1}
             className="max-h-40 min-h-[44px] flex-1 resize-none"
             disabled={busy}
+          />
+          {voiceSettings.enabled && <LazyVoiceControls voice={voice} disabled={busy} />}
+          <LazyVoiceSettingsSheet
+            settings={voiceSettings}
+            onChange={updateVoiceSettings}
+            support={voice.support}
           />
           {busy ? (
             <Button type="button" variant="outline" onClick={() => stop()} aria-label="Stop">
@@ -238,9 +248,10 @@ export function ChatWindow() {
           )}
         </div>
         <p className="mt-2 px-1 text-[11px] text-muted-foreground">
-          Enter to send · Shift + Enter for a new line
+          Enter to send · Shift + Enter for a new line · Tap the mic to speak (Esc cancels)
         </p>
       </div>
+
     </div>
   );
 }
