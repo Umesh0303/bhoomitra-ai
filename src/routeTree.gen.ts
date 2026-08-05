@@ -25,10 +25,12 @@ import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
 import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
+import { Route as AuthenticatedAppCropHealthRouteImport } from './routes/_authenticated/app.crop-health'
 import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
 import { Route as AuthenticatedAppCalendarRouteImport } from './routes/_authenticated/app.calendar'
 import { Route as AuthenticatedAppAssistantRouteImport } from './routes/_authenticated/app.assistant'
 import { Route as AuthenticatedAppFarmsIndexRouteImport } from './routes/_authenticated/app.farms.index'
+import { Route as AuthenticatedAppCropHealthIndexRouteImport } from './routes/_authenticated/app.crop-health.index'
 import { Route as AuthenticatedAppFarmsNewRouteImport } from './routes/_authenticated/app.farms.new'
 import { Route as AuthenticatedAppFarmsFarmIdIndexRouteImport } from './routes/_authenticated/app.farms.$farmId.index'
 import { Route as AuthenticatedAppFarmsFarmIdEditRouteImport } from './routes/_authenticated/app.farms.$farmId.edit'
@@ -115,6 +117,12 @@ const AuthenticatedAppDashboardRoute =
     path: '/dashboard',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppCropHealthRoute =
+  AuthenticatedAppCropHealthRouteImport.update({
+    id: '/crop-health',
+    path: '/crop-health',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppComingSoonRoute =
   AuthenticatedAppComingSoonRouteImport.update({
     id: '/coming-soon',
@@ -138,6 +146,12 @@ const AuthenticatedAppFarmsIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedAppFarmsRoute,
+  } as any)
+const AuthenticatedAppCropHealthIndexRoute =
+  AuthenticatedAppCropHealthIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAppCropHealthRoute,
   } as any)
 const AuthenticatedAppFarmsNewRoute =
   AuthenticatedAppFarmsNewRouteImport.update({
@@ -170,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/app/assistant': typeof AuthenticatedAppAssistantRoute
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
+  '/app/crop-health': typeof AuthenticatedAppCropHealthRouteWithChildren
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -178,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/app/weather': typeof AuthenticatedAppWeatherRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
+  '/app/crop-health/': typeof AuthenticatedAppCropHealthIndexRoute
   '/app/farms/': typeof AuthenticatedAppFarmsIndexRoute
   '/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
   '/app/farms/$farmId/': typeof AuthenticatedAppFarmsFarmIdIndexRoute
@@ -200,6 +216,7 @@ export interface FileRoutesByTo {
   '/app/weather': typeof AuthenticatedAppWeatherRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
+  '/app/crop-health': typeof AuthenticatedAppCropHealthIndexRoute
   '/app/farms': typeof AuthenticatedAppFarmsIndexRoute
   '/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
   '/app/farms/$farmId': typeof AuthenticatedAppFarmsFarmIdIndexRoute
@@ -218,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/app/assistant': typeof AuthenticatedAppAssistantRoute
   '/_authenticated/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/_authenticated/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
+  '/_authenticated/app/crop-health': typeof AuthenticatedAppCropHealthRouteWithChildren
   '/_authenticated/app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/_authenticated/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
@@ -226,6 +244,7 @@ export interface FileRoutesById {
   '/_authenticated/app/weather': typeof AuthenticatedAppWeatherRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
+  '/_authenticated/app/crop-health/': typeof AuthenticatedAppCropHealthIndexRoute
   '/_authenticated/app/farms/': typeof AuthenticatedAppFarmsIndexRoute
   '/_authenticated/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
   '/_authenticated/app/farms/$farmId/': typeof AuthenticatedAppFarmsFarmIdIndexRoute
@@ -244,6 +263,7 @@ export interface FileRouteTypes {
     | '/app/assistant'
     | '/app/calendar'
     | '/app/coming-soon'
+    | '/app/crop-health'
     | '/app/dashboard'
     | '/app/farms'
     | '/app/knowledge'
@@ -252,6 +272,7 @@ export interface FileRouteTypes {
     | '/app/weather'
     | '/app/'
     | '/app/farms/new'
+    | '/app/crop-health/'
     | '/app/farms/'
     | '/app/farms/$farmId/edit'
     | '/app/farms/$farmId/'
@@ -274,6 +295,7 @@ export interface FileRouteTypes {
     | '/app/weather'
     | '/app'
     | '/app/farms/new'
+    | '/app/crop-health'
     | '/app/farms'
     | '/app/farms/$farmId/edit'
     | '/app/farms/$farmId'
@@ -291,6 +313,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/assistant'
     | '/_authenticated/app/calendar'
     | '/_authenticated/app/coming-soon'
+    | '/_authenticated/app/crop-health'
     | '/_authenticated/app/dashboard'
     | '/_authenticated/app/farms'
     | '/_authenticated/app/knowledge'
@@ -299,6 +322,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/weather'
     | '/_authenticated/app/'
     | '/_authenticated/app/farms/new'
+    | '/_authenticated/app/crop-health/'
     | '/_authenticated/app/farms/'
     | '/_authenticated/app/farms/$farmId/edit'
     | '/_authenticated/app/farms/$farmId/'
@@ -429,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppDashboardRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/crop-health': {
+      id: '/_authenticated/app/crop-health'
+      path: '/crop-health'
+      fullPath: '/app/crop-health'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/coming-soon': {
       id: '/_authenticated/app/coming-soon'
       path: '/coming-soon'
@@ -457,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFarmsIndexRouteImport
       parentRoute: typeof AuthenticatedAppFarmsRoute
     }
+    '/_authenticated/app/crop-health/': {
+      id: '/_authenticated/app/crop-health/'
+      path: '/'
+      fullPath: '/app/crop-health/'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthIndexRouteImport
+      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    }
     '/_authenticated/app/farms/new': {
       id: '/_authenticated/app/farms/new'
       path: '/new'
@@ -481,6 +519,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAppCropHealthRouteChildren {
+  AuthenticatedAppCropHealthIndexRoute: typeof AuthenticatedAppCropHealthIndexRoute
+}
+
+const AuthenticatedAppCropHealthRouteChildren: AuthenticatedAppCropHealthRouteChildren =
+  {
+    AuthenticatedAppCropHealthIndexRoute: AuthenticatedAppCropHealthIndexRoute,
+  }
+
+const AuthenticatedAppCropHealthRouteWithChildren =
+  AuthenticatedAppCropHealthRoute._addFileChildren(
+    AuthenticatedAppCropHealthRouteChildren,
+  )
+
 interface AuthenticatedAppFarmsRouteChildren {
   AuthenticatedAppFarmsNewRoute: typeof AuthenticatedAppFarmsNewRoute
   AuthenticatedAppFarmsIndexRoute: typeof AuthenticatedAppFarmsIndexRoute
@@ -504,6 +556,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAssistantRoute: typeof AuthenticatedAppAssistantRoute
   AuthenticatedAppCalendarRoute: typeof AuthenticatedAppCalendarRoute
   AuthenticatedAppComingSoonRoute: typeof AuthenticatedAppComingSoonRoute
+  AuthenticatedAppCropHealthRoute: typeof AuthenticatedAppCropHealthRouteWithChildren
   AuthenticatedAppDashboardRoute: typeof AuthenticatedAppDashboardRoute
   AuthenticatedAppFarmsRoute: typeof AuthenticatedAppFarmsRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
@@ -517,6 +570,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAssistantRoute: AuthenticatedAppAssistantRoute,
   AuthenticatedAppCalendarRoute: AuthenticatedAppCalendarRoute,
   AuthenticatedAppComingSoonRoute: AuthenticatedAppComingSoonRoute,
+  AuthenticatedAppCropHealthRoute: AuthenticatedAppCropHealthRouteWithChildren,
   AuthenticatedAppDashboardRoute: AuthenticatedAppDashboardRoute,
   AuthenticatedAppFarmsRoute: AuthenticatedAppFarmsRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
@@ -553,13 +607,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -97,6 +97,220 @@ export type Database = {
           },
         ]
       }
+      crop_scan_images: {
+        Row: {
+          bytes: number | null
+          created_at: string
+          height: number | null
+          id: string
+          media_kind: string
+          plant_part: string
+          scan_id: string
+          sort_order: number
+          storage_path: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          bytes?: number | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          media_kind?: string
+          plant_part?: string
+          scan_id: string
+          sort_order?: number
+          storage_path: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          bytes?: number | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          media_kind?: string
+          plant_part?: string
+          scan_id?: string
+          sort_order?: number
+          storage_path?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crop_scan_images_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "crop_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crop_scan_questions: {
+        Row: {
+          answer: string | null
+          category: string | null
+          created_at: string
+          help_text: string | null
+          id: string
+          input_type: string
+          options: Json
+          question: string
+          scan_id: string
+          sort_order: number
+          targets: Json
+          user_id: string
+        }
+        Insert: {
+          answer?: string | null
+          category?: string | null
+          created_at?: string
+          help_text?: string | null
+          id?: string
+          input_type?: string
+          options?: Json
+          question: string
+          scan_id: string
+          sort_order?: number
+          targets?: Json
+          user_id: string
+        }
+        Update: {
+          answer?: string | null
+          category?: string | null
+          created_at?: string
+          help_text?: string | null
+          id?: string
+          input_type?: string
+          options?: Json
+          question?: string
+          scan_id?: string
+          sort_order?: number
+          targets?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crop_scan_questions_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "crop_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crop_scans: {
+        Row: {
+          alerts: Json
+          candidates: Json
+          citations: Json
+          confidence: number | null
+          created_at: string
+          crop_name: string | null
+          diagnosis: Json | null
+          differential: Json
+          disease_type: string | null
+          evidence: Json
+          farm_id: string
+          farm_snapshot: Json
+          health_score: Json
+          id: string
+          image_analysis: Json
+          missing_evidence: Json
+          parent_scan_id: string | null
+          plant_parts: string[]
+          progression: Json
+          reasoning: string | null
+          recovery: Json
+          severity: string | null
+          status: string
+          treatment_plan: Json
+          treatment_status: string
+          updated_at: string
+          user_id: string
+          weather_risk: Json
+          weather_snapshot: Json
+        }
+        Insert: {
+          alerts?: Json
+          candidates?: Json
+          citations?: Json
+          confidence?: number | null
+          created_at?: string
+          crop_name?: string | null
+          diagnosis?: Json | null
+          differential?: Json
+          disease_type?: string | null
+          evidence?: Json
+          farm_id: string
+          farm_snapshot?: Json
+          health_score?: Json
+          id?: string
+          image_analysis?: Json
+          missing_evidence?: Json
+          parent_scan_id?: string | null
+          plant_parts?: string[]
+          progression?: Json
+          reasoning?: string | null
+          recovery?: Json
+          severity?: string | null
+          status?: string
+          treatment_plan?: Json
+          treatment_status?: string
+          updated_at?: string
+          user_id: string
+          weather_risk?: Json
+          weather_snapshot?: Json
+        }
+        Update: {
+          alerts?: Json
+          candidates?: Json
+          citations?: Json
+          confidence?: number | null
+          created_at?: string
+          crop_name?: string | null
+          diagnosis?: Json | null
+          differential?: Json
+          disease_type?: string | null
+          evidence?: Json
+          farm_id?: string
+          farm_snapshot?: Json
+          health_score?: Json
+          id?: string
+          image_analysis?: Json
+          missing_evidence?: Json
+          parent_scan_id?: string | null
+          plant_parts?: string[]
+          progression?: Json
+          reasoning?: string | null
+          recovery?: Json
+          severity?: string | null
+          status?: string
+          treatment_plan?: Json
+          treatment_status?: string
+          updated_at?: string
+          user_id?: string
+          weather_risk?: Json
+          weather_snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crop_scans_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crop_scans_parent_scan_id_fkey"
+            columns: ["parent_scan_id"]
+            isOneToOne: false
+            referencedRelation: "crop_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       farm_images: {
         Row: {
           created_at: string
