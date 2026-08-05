@@ -1,53 +1,55 @@
-# AI Voice Assistant (additive)
+# Crop Health — AI Disease Detection (additive module)
 
-Layer voice input and spoken replies on top of the existing AI Assistant at `/app/assistant`. The chat pipeline (RAG, farm context, Gemini via the AI Gateway) stays exactly as it is — voice is only a new interface around it.
+A new "Crop Health" section at `/app/crop-health` that diagnoses crop problems the way an extension officer would: image evidence + stored farm context + live weather + targeted follow-up questions + your uploaded knowledge base, ending in a confidence-scored diagnosis, treatment plan and recovery tracking.
 
-## What the farmer gets
+Nothing existing changes except one new sidebar link. Auth, Farms, Assistant, RAG, Weather, Calendar, Voice and all current tables/routes stay exactly as they are.
 
-- A large microphone button next to the existing message box. Tap to speak; the transcript appears live in the box so it can be reviewed and edited before sending (optional auto-send after silence).
-- Automatic silence detection ends recording; Escape cancels; a max duration stops runaway recordings.
-- AI replies are read aloud (auto-play configurable) with speaking animation, pause/resume, stop and replay controls on each assistant message.
-- Language support: English, Hindi, Telugu, Tamil, Kannada, Marathi. Spoken language is detected where the browser allows, and playback picks the matching installed voice, falling back to English.
-- Clear state indicator at all times: idle, listening, processing, speaking, paused, error.
-- Voice commands ("open my farms", "show weather", "open crop calendar", "open farm knowledge", "go to dashboard") navigate using existing routes instead of sending a chat message.
-- Voice settings panel (in the assistant page header, and mirrored in the existing Settings page's placeholder-free new "Voice" area only if you want it — default is assistant page only): enable/disable voice, auto-play, speech rate, pitch, preferred language, voice selection.
+## What the farmer sees
 
-## Behaviour when unsupported
+1. **Pick a farm** — the farm card auto-fills crop, location, soil, area, water sources, growth stage (from the crop calendar) and latest weather. No re-typing.
+2. **Add photos** — camera or gallery, up to 5, each tagged (leaf / fruit / stem / flower / root / whole plant). Images are compressed in the browser before upload, with per-file progress.
+3. **Analysis** — a staged progress strip (Analyzing images → Checking symptoms → Comparing diseases → Reviewing weather → Generating questions) while the AI works. UI never blocks.
+4. **Top 3 possibilities** with confidence bars — not a final answer yet.
+5. **Up to 6 smart questions** — generated from those possibilities, mostly yes/no, chips or radio buttons. Weather-aware phrasing ("We detected 38mm rain in the last 3 days — correct?"). Nothing already known is asked.
+6. **Final diagnosis** — name, scientific name, type (fungal/bacterial/viral/pest/nutrient/water/heat/cold/physical/unknown), severity, affected parts, symptoms, cause, spread estimate, yield impact, risk level, recovery probability. Confidence can move up or down, and the diagnosis can change if answers contradict the images.
+7. **Treatment plan** — organic, chemical, cultural, preventive; spray interval, dosage, safety notes; a standing instruction to avoid restricted chemicals and defer to local agricultural authorities when unsure.
+8. **Weather risk panel** — how the coming week's humidity, rain, heat, wind affect this disease, with a Low/Medium/High forward risk.
+9. **Sources** — knowledge-base citations when your documents contain something relevant; silently skipped when they don't.
+10. **Ask AI** — opens the Assistant pre-seeded with the diagnosis, symptoms, answers, farm and weather context.
+11. **Scan History** per farm — timeline with thumbnails, diagnosis, severity, treatment status.
+12. **Follow-up scan** — links to a previous scan and reports Improved / No change / Worsened with an estimated recovery %.
+13. **Crop Health dashboard** — total scans, healthy plants, diseases detected, pending treatments, average health score, recent alerts.
 
-If the browser lacks Web Speech APIs (common on Firefox and some Android webviews), the mic button is hidden or disabled with a short explanation and text chat keeps working untouched. Permission denied, no microphone, timeouts, recognition failure and playback failure each show a farmer-friendly message with a retry option.
+Reminders (spray tomorrow, follow-up scan, treatment complete) are written as tasks into the existing crop calendar so they show up where farmers already look — additive rows only, no calendar code changes.
+
+## Confidence rules
+
+Image only caps at 85%. Image + answers caps at 95%. Image + answers + weather + farm context caps at 99%. Never 100%. Caps are enforced in code after the model responds, not left to the model.
 
 ## Technical approach
 
-New files only, plus small mounts inside `ChatWindow.tsx` and the assistant route.
+**New tables** (migration, RLS owner-only + GRANTs, same pattern as `calendar_tasks`):
+- `crop_scans` — farm_id, user_id, status, crop, plant parts, farm/weather snapshot (jsonb), stage 1 candidates (jsonb), final diagnosis (jsonb), treatment plan (jsonb), weather risk (jsonb), confidence, severity, health_score, treatment_status, parent_scan_id (follow-ups), recovery jsonb, citations jsonb, timestamps.
+- `crop_scan_images` — scan_id, storage_path, plant_part, width/height/bytes, order.
+- `crop_scan_questions` — scan_id, question text, options jsonb, answer, order, category.
+- New private storage bucket `crop-scan-images`, policies scoped to `user_id/scan_id/...` paths, signed URLs on read (mirrors `farm-images`).
 
-```text
-src/types/voice.ts                     state machine, settings, provider interfaces
-src/lib/voice/speech-recognition.ts    Web Speech API adapter behind a provider interface
-src/lib/voice/speech-synthesis.ts      SpeechSynthesis adapter behind the same style of interface
-src/lib/voice/voice-manager.ts         single owner of recognition/synthesis lifecycle
-src/lib/voice/language-detector.ts     script/heuristic detection + BCP-47 mapping
-src/lib/voice/silence-detector.ts      AnalyserNode RMS-based end-of-speech detection
-src/lib/voice/commands.ts              phrase -> route mapping
-src/utils/audio.ts, src/utils/browser-support.ts
-src/hooks/useSpeechRecognition.ts, useTextToSpeech.ts, useVoiceConversation.ts, useVoiceSettings.ts
-src/components/voice/VoiceButton.tsx, VoiceRecorder.tsx, VoicePlayer.tsx,
-                     VoiceVisualizer.tsx, VoiceControls.tsx,
-                     VoicePermissionDialog.tsx, VoiceSettingsSheet.tsx
-```
+**Server functions** in `src/features/crop-health/` (all `requireSupabaseAuth`, so the routes live under `_authenticated/`):
+- `createScan` / `listScans` / `getScan` / `deleteScan`
+- `analyzeScan` — pulls farm + water sources + calendar stage + cached weather, sends signed image URLs to a vision model through the existing Lovable AI Gateway with a strict JSON schema, returns top-3 candidates.
+- `generateQuestions` — candidate-driven, max 6, structured options, weather-aware phrasing.
+- `finalizeScan` — re-reasons over candidates + answers + weather + farm context, runs a RAG retrieval (reusing `embedQuery` + `match_knowledge_chunks` + reranker), applies the confidence caps, persists diagnosis + treatment + risk + citations.
+- `compareScans` — recovery delta against `parent_scan_id`.
 
-Provider interfaces (`SpeechRecognitionProvider`, `SpeechSynthesisProvider`) keep UI components free of browser-API details, so Google/OpenAI/Deepgram/ElevenLabs backends can be dropped in later by adding one adapter file.
+All AI calls go through the existing gateway helper with the current models (Gemini flash for vision/reasoning, existing embedding model for retrieval). No new secrets, no new gateway config, no changes to `/api/chat` — the "Ask AI" button navigates to the Assistant with context passed via the existing `FarmContext` mechanism plus a prefilled first message.
 
-Integration points, kept minimal:
-- `ChatWindow.tsx` — render `<VoiceControls />` beside the existing Send button, `<VoicePlayer />` under assistant messages, and feed the transcript into the existing `input` state. `sendMessage` and the transport are unchanged.
-- `app.assistant.tsx` — header button opening the voice settings sheet.
-- Voice components are lazy-loaded (`React.lazy` behind a hydration/support gate) so nothing browser-only runs during SSR.
+**Routes** (new files only): `_authenticated/app.crop-health.tsx` (layout + tabs), `.index.tsx` (dashboard), `.scan.tsx` (wizard), `.history.tsx`, `.$scanId.tsx` (report). Sidebar gets one new entry in `AppLayout` — the only edit to an existing file.
 
-Settings persistence: a new `voice_settings` table (one row per user, owner-only RLS + grants) with an optimistic localStorage cache so the panel is instant offline. No other schema is touched. Raw audio is never stored or uploaded — the mic stream is analysed in-browser and released on stop/unmount.
+**UI** — existing design tokens and shadcn components only; mobile-first, large tap targets, high contrast, TanStack Query caching for history, lazy-loaded wizard steps, retry on every failed AI step.
 
-Cleanup: recognition and synthesis are aborted on unmount and on route change; audio contexts and media tracks are closed to avoid leaks.
+**Future-ready** — the scan record stores media generically (path + kind), so video, drone, satellite or sensor evidence slots in without schema churn; the diagnosis engine is split into analyze/question/finalize stages so an expert-review or outbreak-mapping layer can hook in later.
 
-Accessibility: keyboard operable controls, ARIA live region for state changes, visible focus rings, `prefers-reduced-motion` disables the waveform pulse, tap targets at least 44px.
+## Scope notes
 
-## Out of scope for this pass
-
-Server-side STT/TTS providers, wake word, always-on listening, voice for pages other than the assistant, and offline recognition.
+- Push notifications are out of scope; reminders surface as calendar tasks and in-app alerts.
+- Offline-friendly means graceful degradation and cached history, not a full offline sync engine.
