@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Tractor,
   CloudSun,
+  Stethoscope,
   CalendarDays,
   FileBarChart2,
   Settings,
