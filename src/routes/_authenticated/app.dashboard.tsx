@@ -213,9 +213,9 @@ function DashboardPage() {
               </p>
             </li>
             <li>
-              <div className="font-medium">Roadmap preview</div>
+              <div className="font-medium">AI Crop Health is live</div>
               <p className="mt-1 text-muted-foreground">
-                Crop recommendation and disease detection are first in line.
+                Disease Detection is now available. Crop Recommendation is coming next.
               </p>
             </li>
           </ul>
@@ -225,29 +225,53 @@ function DashboardPage() {
       <section>
         <div className="mb-4 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Coming soon</h2>
+          <h2 className="font-display text-lg font-semibold">AI modules</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {futureModules.map((m) => (
-            <div
-              key={m.title}
-              className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-soft"
-            >
-              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-soft/60 blur-2xl" />
-              <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
-                <m.icon className="h-5 w-5" />
-              </span>
-              <h3 className="relative mt-4 font-display text-base font-semibold">{m.title}</h3>
-              <p className="relative mt-1 text-sm text-muted-foreground">
-                Premium AI module arriving in a future version.
-              </p>
-              <span className="relative mt-4 inline-block rounded-full bg-highlight/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-highlight-foreground/80">
-                Coming Soon
-              </span>
-            </div>
-          ))}
+          {futureModules.map((m) => {
+            const live = m.flag.enabled && m.flag.to;
+            const body = (
+              <>
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-soft/60 blur-2xl" />
+                <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
+                  <m.icon className="h-5 w-5" />
+                </span>
+                <h3 className="relative mt-4 font-display text-base font-semibold">{m.title}</h3>
+                <p className="relative mt-1 text-sm text-muted-foreground">
+                  {live
+                    ? "Available now — open the module to get started."
+                    : "Premium AI module arriving in a future version."}
+                </p>
+                {live ? (
+                  <span className="relative mt-4 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground">
+                    Open module <ArrowUpRight className="h-3 w-3" />
+                  </span>
+                ) : (
+                  <span className="relative mt-4 inline-block rounded-full bg-highlight/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-highlight-foreground/80">
+                    Coming Soon
+                  </span>
+                )}
+              </>
+            );
+            const className =
+              "relative block overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-soft";
+            return live ? (
+              <Link
+                key={m.title}
+                to={m.flag.to!}
+                className={`${className} transition hover:-translate-y-0.5 hover:border-primary hover:shadow-card`}
+              >
+                {body}
+              </Link>
+            ) : (
+              <div key={m.title} className={className}>
+                {body}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>
   );
+}
 }
