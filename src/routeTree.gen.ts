@@ -33,6 +33,7 @@ import { Route as AuthenticatedAppFarmsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppCropHealthIndexRouteImport } from './routes/_authenticated/app.crop-health.index'
 import { Route as AuthenticatedAppFarmsNewRouteImport } from './routes/_authenticated/app.farms.new'
 import { Route as AuthenticatedAppCropHealthScanRouteImport } from './routes/_authenticated/app.crop-health.scan'
+import { Route as AuthenticatedAppCropHealthHistoryRouteImport } from './routes/_authenticated/app.crop-health.history'
 import { Route as AuthenticatedAppFarmsFarmIdIndexRouteImport } from './routes/_authenticated/app.farms.$farmId.index'
 import { Route as AuthenticatedAppFarmsFarmIdEditRouteImport } from './routes/_authenticated/app.farms.$farmId.edit'
 
@@ -166,6 +167,12 @@ const AuthenticatedAppCropHealthScanRoute =
     path: '/scan',
     getParentRoute: () => AuthenticatedAppCropHealthRoute,
   } as any)
+const AuthenticatedAppCropHealthHistoryRoute =
+  AuthenticatedAppCropHealthHistoryRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+  } as any)
 const AuthenticatedAppFarmsFarmIdIndexRoute =
   AuthenticatedAppFarmsFarmIdIndexRouteImport.update({
     id: '/$farmId/',
@@ -199,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/weather': typeof AuthenticatedAppWeatherRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/crop-health/history': typeof AuthenticatedAppCropHealthHistoryRoute
   '/app/crop-health/scan': typeof AuthenticatedAppCropHealthScanRoute
   '/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
   '/app/crop-health/': typeof AuthenticatedAppCropHealthIndexRoute
@@ -223,6 +231,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/weather': typeof AuthenticatedAppWeatherRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/crop-health/history': typeof AuthenticatedAppCropHealthHistoryRoute
   '/app/crop-health/scan': typeof AuthenticatedAppCropHealthScanRoute
   '/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
   '/app/crop-health': typeof AuthenticatedAppCropHealthIndexRoute
@@ -252,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
   '/_authenticated/app/weather': typeof AuthenticatedAppWeatherRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/crop-health/history': typeof AuthenticatedAppCropHealthHistoryRoute
   '/_authenticated/app/crop-health/scan': typeof AuthenticatedAppCropHealthScanRoute
   '/_authenticated/app/farms/new': typeof AuthenticatedAppFarmsNewRoute
   '/_authenticated/app/crop-health/': typeof AuthenticatedAppCropHealthIndexRoute
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/weather'
     | '/app/'
+    | '/app/crop-health/history'
     | '/app/crop-health/scan'
     | '/app/farms/new'
     | '/app/crop-health/'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/weather'
     | '/app'
+    | '/app/crop-health/history'
     | '/app/crop-health/scan'
     | '/app/farms/new'
     | '/app/crop-health'
@@ -333,6 +345,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/settings'
     | '/_authenticated/app/weather'
     | '/_authenticated/app/'
+    | '/_authenticated/app/crop-health/history'
     | '/_authenticated/app/crop-health/scan'
     | '/_authenticated/app/farms/new'
     | '/_authenticated/app/crop-health/'
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppCropHealthScanRouteImport
       parentRoute: typeof AuthenticatedAppCropHealthRoute
     }
+    '/_authenticated/app/crop-health/history': {
+      id: '/_authenticated/app/crop-health/history'
+      path: '/history'
+      fullPath: '/app/crop-health/history'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthHistoryRouteImport
+      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    }
     '/_authenticated/app/farms/$farmId/': {
       id: '/_authenticated/app/farms/$farmId/'
       path: '/$farmId'
@@ -540,12 +560,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAppCropHealthRouteChildren {
+  AuthenticatedAppCropHealthHistoryRoute: typeof AuthenticatedAppCropHealthHistoryRoute
   AuthenticatedAppCropHealthScanRoute: typeof AuthenticatedAppCropHealthScanRoute
   AuthenticatedAppCropHealthIndexRoute: typeof AuthenticatedAppCropHealthIndexRoute
 }
 
 const AuthenticatedAppCropHealthRouteChildren: AuthenticatedAppCropHealthRouteChildren =
   {
+    AuthenticatedAppCropHealthHistoryRoute:
+      AuthenticatedAppCropHealthHistoryRoute,
     AuthenticatedAppCropHealthScanRoute: AuthenticatedAppCropHealthScanRoute,
     AuthenticatedAppCropHealthIndexRoute: AuthenticatedAppCropHealthIndexRoute,
   }
