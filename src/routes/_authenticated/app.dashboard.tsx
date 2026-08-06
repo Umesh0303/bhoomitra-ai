@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { listFarms, formatArea } from "@/lib/farms";
+import { moduleFlag } from "@/lib/module-flags";
 
 export const Route = createFileRoute("/_authenticated/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Bhoomitra AI" }] }),
