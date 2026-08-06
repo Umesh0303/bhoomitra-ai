@@ -33,12 +33,12 @@ const actions = [
 ];
 
 const futureModules = [
-  { icon: Sprout, title: "Crop Recommendation" },
-  { icon: Bug, title: "Disease Detection" },
-  { icon: FlaskConical, title: "Fertilizer Advisor" },
-  { icon: LineChart, title: "Yield Prediction" },
-  { icon: LineChart, title: "Market Prediction" },
-  { icon: Mic, title: "Voice Assistant" },
+  { icon: Sprout, title: "Crop Recommendation", flag: moduleFlag("crop-recommendation") },
+  { icon: Bug, title: "Disease Detection", flag: moduleFlag("disease-detection") },
+  { icon: FlaskConical, title: "Fertilizer Advisor", flag: moduleFlag("fertilizer-advisor") },
+  { icon: LineChart, title: "Yield Prediction", flag: moduleFlag("yield-prediction") },
+  { icon: LineChart, title: "Market Prediction", flag: moduleFlag("market-prediction") },
+  { icon: Mic, title: "Voice Assistant", flag: moduleFlag("voice-assistant") },
 ];
 
 function DashboardPage() {
