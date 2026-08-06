@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { MODULE_FLAGS } from "@/lib/module-flags";
 import { Sprout, Bug, FlaskConical, LineChart, TrendingUp, Mic, MessageCircle, BarChart3, Bell } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/coming-soon")({
@@ -8,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/app/coming-soon")({
 
 const modules = [
   { icon: Sprout, title: "Crop Recommendation", desc: "AI suggestions tailored to your soil and climate." },
-  { icon: Bug, title: "Disease Detection", desc: "Spot crop diseases early from a single photo." },
+  { icon: Bug, title: "Disease Detection", desc: "Spot crop diseases early from a single photo.", flag: MODULE_FLAGS["disease-detection"] },
   { icon: FlaskConical, title: "Fertilizer Advisor", desc: "Optimize nutrients with precision guidance." },
   { icon: LineChart, title: "Yield Prediction", desc: "Forecast harvest outcomes with confidence." },
   { icon: TrendingUp, title: "Market Prediction", desc: "Sell at the right moment with price trends." },
@@ -42,15 +43,25 @@ function ComingSoonPage() {
             <h3 className="relative mt-5 font-display text-lg font-semibold">{m.title}</h3>
             <p className="relative mt-2 text-sm leading-relaxed text-muted-foreground">{m.desc}</p>
             <div className="relative mt-5 flex items-center justify-between">
-              <span className="rounded-full bg-highlight/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-highlight-foreground/80">
-                Coming Soon
-              </span>
-              <button
-                className="text-sm font-medium text-muted-foreground"
-                disabled
-              >
-                Preview
-              </button>
+              {m.flag?.enabled && m.flag.to ? (
+                <>
+                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                    Available now
+                  </span>
+                  <Link to={m.flag.to} className="text-sm font-medium text-primary hover:underline">
+                    Open module
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span className="rounded-full bg-highlight/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-highlight-foreground/80">
+                    Coming Soon
+                  </span>
+                  <button className="text-sm font-medium text-muted-foreground" disabled>
+                    Preview
+                  </button>
+                </>
+              )}
             </div>
           </article>
         ))}
