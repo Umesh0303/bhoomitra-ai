@@ -27,6 +27,7 @@ import { signOut } from "@/services/authService";
 const nav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/app/farms", label: "My Farms", icon: Tractor },
+  { to: "/app/crop-health", label: "Crop Health", icon: Stethoscope },
   { to: "/app/weather", label: "Weather", icon: CloudSun },
   { to: "/app/calendar", label: "Crop Calendar", icon: CalendarDays },
   { to: "/app/reports", label: "Reports", icon: FileBarChart2 },
