@@ -86,8 +86,26 @@ function ScanWizard() {
   const [activeStep, setActiveStep] = useState(0);
   const [questions, setQuestions] = useState<CropScanQuestionRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [debug, setDebug] = useState<ScanDebug | null>(null);
+  const [stageError, setStageError] = useState<StageErrorPayload | null>(null);
 
   const selectedFarm = useMemo(() => farms.find((f) => f.id === farmId), [farms, farmId]);
+
+  /** Surfaces the exact failing stage; never a generic "AI could not complete". */
+  function reportFailure(err: unknown, fallback: string) {
+    const payload = parseStageError(err);
+    setStageError(payload);
+    if (payload?.debug) setDebug((d) => mergeDebug(d, payload.debug));
+    if (import.meta.env.DEV) {
+      console.error("[crop-health] pipeline failure", { fallback, payload, error: err });
+    }
+    const message = payload
+      ? stageErrorMessage(err)
+      : err instanceof Error
+        ? `${fallback}: ${err.message}`
+        : fallback;
+    toast.error(message);
+  }
 
   async function startScan() {
     if (!farmId) {
@@ -100,9 +118,18 @@ function ScanWizard() {
       setScanId(res.scanId);
       setFarm(res.farm as FarmSnapshot);
       setWeather(res.weather as WeatherSnapshot);
+      setDebug(
+        emptyDebug({
+          scanId: res.scanId,
+          farmId,
+          weatherLoaded: Boolean((res.weather as WeatherSnapshot)?.available),
+          dev: import.meta.env.DEV,
+        }),
+      );
+      setStageError(null);
       setStep("photos");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not start the scan");
+      reportFailure(err, "Farm context lookup failed");
     } finally {
       setBusy(false);
     }
@@ -114,12 +141,32 @@ function ScanWizard() {
       toast.error("Add at least one photo");
       return;
     }
+    setStageError(null);
     setUploading(true);
+    const uploadStart = Date.now();
     try {
       await uploadScanImages(scanId, images, (done, total) => setProgress({ done, total }));
+      setDebug((d) => {
+        const base = d ?? emptyDebug({ scanId, farmId, dev: import.meta.env.DEV });
+        return {
+          ...base,
+          imagesCount: images.length,
+          currentStage: "images_uploaded",
+          stages: [
+            ...base.stages,
+            {
+              stage: "images_uploaded" as const,
+              label: "Images uploaded",
+              status: "ok" as const,
+              ms: Date.now() - uploadStart,
+              note: `${images.length} images`,
+            },
+          ],
+        };
+      });
     } catch (err) {
       setUploading(false);
-      toast.error(err instanceof Error ? err.message : "Photo upload failed");
+      reportFailure(err, "Image upload failed");
       return;
     }
     setUploading(false);
@@ -127,9 +174,11 @@ function ScanWizard() {
     setStep("analyzing");
     setActiveStep(0);
     try {
-      await analyze({ data: { scanId } });
+      const analysis = await analyze({ data: { scanId } });
+      setDebug((d) => mergeDebug(d, analysis.debug as ScanDebug));
       setActiveStep(4);
-      await askQuestions({ data: { scanId } });
+      const asked = await askQuestions({ data: { scanId } });
+      setDebug((d) => mergeDebug(d, asked.debug as ScanDebug));
       const scan = await getScanWithMedia(scanId);
       const qs = [...(scan?.crop_scan_questions ?? [])].sort(
         (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
@@ -138,25 +187,28 @@ function ScanWizard() {
       setStep("questions");
     } catch (err) {
       setStep("photos");
-      toast.error(err instanceof Error ? err.message : "Analysis failed. Try again.");
+      reportFailure(err, "Analysis failed");
     }
   }
 
   async function finish(answers: Array<{ id: string; answer: string }>) {
     if (!scanId) return;
+    setStageError(null);
     setStep("fusing");
     setActiveStep(5);
     try {
       if (answers.length) await saveAnswers({ data: { scanId, answers } });
       setActiveStep(6);
-      await fuse({ data: { scanId } });
+      const fused = await fuse({ data: { scanId } });
+      setDebug((d) => mergeDebug(d, fused.debug as ScanDebug));
       setActiveStep(7);
       navigate({ to: "/app/crop-health/$scanId", params: { scanId } });
     } catch (err) {
       setStep("questions");
-      toast.error(err instanceof Error ? err.message : "Could not complete the diagnosis");
+      reportFailure(err, "Evidence fusion failed");
     }
   }
+
 
   if (step === "farm") {
     return (
