@@ -532,22 +532,34 @@ export const saveScanAnswers = createServerFn({ method: "POST" })
 export const fuseScanEvidence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: { scanId: string }) => i)
-  .handler(async ({ data, context }): Promise<FusionResult> => {
+  .handler(async ({ data, context }): Promise<FusionResult & { debug: ScanDebug }> => {
     const ctx = context as unknown as SupabaseCtx;
-    const { data: scan } = await ctx.supabase
-      .from("crop_scans")
-      .select(
-        "id, farm_id, parent_scan_id, farm_snapshot, weather_snapshot, image_analysis, crop_scan_questions(*)",
-      )
-      .eq("id", data.scanId)
-      .maybeSingle();
-    if (!scan) throw new Error("Scan not found");
+    const { StageTracker, aiStage } = await import("./diagnostics.server");
+    const tracker = new StageTracker({ scanId: data.scanId, visionModel: BHOOMITRA_CHAT_MODEL });
+
+    const scan = await tracker.run("farm_context", async () => {
+      const { data: row, error } = await ctx.supabase
+        .from("crop_scans")
+        .select(
+          "id, farm_id, parent_scan_id, farm_snapshot, weather_snapshot, image_analysis, crop_scan_questions(*)",
+        )
+        .eq("id", data.scanId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!row) throw new Error("Scan not found");
+      if (!(row.image_analysis as { candidates?: unknown[] } | null)?.candidates?.length) {
+        throw new Error("Run image analysis first");
+      }
+      return row;
+    });
 
     const analysis = scan.image_analysis as unknown as ImageAnalysis;
-    if (!analysis?.candidates?.length) throw new Error("Run image analysis first");
-
     const farm = scan.farm_snapshot as unknown as FarmSnapshot;
     const weather = scan.weather_snapshot as unknown as WeatherSnapshot;
+    tracker.set("farmId", farm?.farmId ?? ((scan.farm_id as string) ?? null));
+    tracker.set("weatherLoaded", Boolean(weather?.available));
+    tracker.ok("weather", 0, weather?.available ? "available" : "unavailable");
+
     const questions = ((scan.crop_scan_questions ?? []) as Array<{
       question: string;
       answer: string | null;
@@ -568,7 +580,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
         targets: (q.targets as string[]) ?? [],
       })) as ScanQuestion[];
 
-    const { key, provider } = await gatewayModel();
+    const { key, provider } = await tracker.run("ai_request", async () => gatewayModel());
     const ragQuery = [
       farm.crop ?? "",
       analysis.candidates.map((c: Candidate) => c.name).join(" "),
@@ -576,7 +588,12 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     ]
       .join(" ")
       .trim();
-    const knowledge = await retrieveKnowledge(ctx, ragQuery, key);
+    const knowledge = await tracker.run(
+      "knowledge",
+      async () => retrieveKnowledge(ctx, ragQuery, key),
+      (k) => `${k.citations.length} citations`,
+    );
+    tracker.set("knowledgeLoaded", knowledge.citations.length > 0);
 
     let previous: { diagnosis: string; date: string; severity: string } | null = null;
     if (scan.parent_scan_id) {
@@ -596,6 +613,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
 
     const { buildFusionPrompt } = await import("./prompts.server");
     let fused: z.infer<typeof FusionSchema>;
+    const t0 = Date.now();
     try {
       const result = await generateObject({
         model: provider,
@@ -611,8 +629,11 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
         prompt: "Fuse all evidence and produce the final diagnosis now.",
       });
       fused = result.object;
+      tracker.set("gatewayStatus", "200");
+      tracker.ok("ai_response", Date.now() - t0);
+      tracker.ok("json_parse", 0, "schema validated");
     } catch (err) {
-      throw aiError(err);
+      throw tracker.recordFailure(aiStage(err), err, Date.now() - t0);
     }
 
     const answered = questions.filter((q) => q.answer && q.answer.trim().length > 0).length;
@@ -634,29 +655,34 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       citations: knowledge.citations,
     };
 
-    await ctx.supabase
-      .from("crop_scans")
-      .update({
-        status: "completed",
-        diagnosis: out.diagnosis as never,
-        confidence,
-        severity: out.diagnosis.severity,
-        disease_type: out.diagnosis.type,
-        evidence: out.evidence as never,
-        reasoning: out.reasoning,
-        differential: out.differential as never,
-        missing_evidence: out.missingEvidence as never,
-        treatment_plan: out.treatmentPlan as never,
-        weather_risk: out.weatherRisk as never,
-        progression: out.progression as never,
-        health_score: out.healthScore as never,
-        alerts: out.alerts as never,
-        citations: knowledge.citations as never,
-      })
-      .eq("id", data.scanId);
+    await tracker.run("db_save", async () => {
+      const { error } = await ctx.supabase
+        .from("crop_scans")
+        .update({
+          status: "completed",
+          diagnosis: out.diagnosis as never,
+          confidence,
+          severity: out.diagnosis.severity,
+          disease_type: out.diagnosis.type,
+          evidence: out.evidence as never,
+          reasoning: out.reasoning,
+          differential: out.differential as never,
+          missing_evidence: out.missingEvidence as never,
+          treatment_plan: out.treatmentPlan as never,
+          weather_risk: out.weatherRisk as never,
+          progression: out.progression as never,
+          health_score: out.healthScore as never,
+          alerts: out.alerts as never,
+          citations: knowledge.citations as never,
+        })
+        .eq("id", data.scanId);
+      if (error) throw new Error(error.message);
+      return true;
+    });
 
-    return out;
+    return { ...out, debug: tracker.debug };
   });
+
 
 /** Writes follow-up reminders into the existing crop calendar (additive rows). */
 export const createScanReminders = createServerFn({ method: "POST" })
