@@ -328,60 +328,116 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
   .inputValidator((i: { scanId: string }) => i)
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
-    const { data: scan } = await ctx.supabase
-      .from("crop_scans")
-      .select("id, farm_id, farm_snapshot, weather_snapshot, crop_scan_images(storage_path, plant_part)")
-      .eq("id", data.scanId)
-      .maybeSingle();
-    if (!scan) throw new Error("Scan not found");
+    const { StageTracker, aiStage, describeError } = await import("./diagnostics.server");
+    const tracker = new StageTracker({ scanId: data.scanId, visionModel: BHOOMITRA_CHAT_MODEL });
 
-    const images = (scan.crop_scan_images ?? []) as Array<{ storage_path: string; plant_part: string }>;
-    if (!images.length) throw new Error("Add at least one photo before analysing");
-
-    const urls = await signPaths(ctx, images.map((i) => i.storage_path));
-    const farm = scan.farm_snapshot as unknown as FarmSnapshot;
-    const weather = scan.weather_snapshot as unknown as WeatherSnapshot;
-
-    const { buildImageAnalysisPrompt } = await import("./prompts.server");
-    const { provider } = await gatewayModel();
-
-    let analysis: ImageAnalysis;
     try {
-      const result = await generateObject({
-        model: provider,
-        schema: ImageAnalysisSchema,
-        system: buildImageAnalysisPrompt(farm, weather),
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Photos attached (${images.map((i) => i.plant_part).join(", ")}). Analyse them.`,
-              },
-              ...urls.map((u) => ({ type: "image" as const, image: new URL(u) })),
-            ],
-          },
-        ],
+      const scan = await tracker.run("images_uploaded", async () => {
+        const { data: row, error } = await ctx.supabase
+          .from("crop_scans")
+          .select(
+            "id, farm_id, farm_snapshot, weather_snapshot, crop_scan_images(storage_path, plant_part)",
+          )
+          .eq("id", data.scanId)
+          .maybeSingle();
+        if (error) throw new Error(error.message);
+        if (!row) throw new Error("Scan not found");
+        const imgs = (row.crop_scan_images ?? []) as Array<{ storage_path: string }>;
+        if (!imgs.length) throw new Error("No uploaded photos found for this scan");
+        return row;
       });
-      analysis = result.object as ImageAnalysis;
+
+      const images = (scan.crop_scan_images ?? []) as Array<{
+        storage_path: string;
+        plant_part: string;
+      }>;
+      tracker.set("imagesCount", images.length);
+      tracker.set("farmId", (scan.farm_id as string) ?? null);
+
+      const urls = await tracker.run(
+        "signed_urls",
+        async () => {
+          const signed = await signPaths(ctx, images.map((i) => i.storage_path));
+          if (signed.length !== images.length) {
+            throw new Error(`Signed ${signed.length}/${images.length} images`);
+          }
+          return signed;
+        },
+        (u) => `${u.length} urls`,
+      );
+
+      const farm = await tracker.run("farm_context", async () => {
+        const snap = scan.farm_snapshot as unknown as FarmSnapshot | null;
+        if (!snap) throw new Error("Farm snapshot missing on scan");
+        return snap;
+      }, (f) => f.farmName);
+
+      const weather = await tracker.run("weather", async () => {
+        const snap = (scan.weather_snapshot as unknown as WeatherSnapshot | null) ?? {
+          available: false,
+          summary: "No weather snapshot on this scan.",
+        };
+        return snap;
+      }, (w) => (w.available ? "available" : "unavailable"));
+      tracker.set("weatherLoaded", weather.available);
+
+      const { buildImageAnalysisPrompt } = await import("./prompts.server");
+      const { provider } = await tracker.run("ai_request", async () => gatewayModel());
+
+      let analysis: ImageAnalysis;
+      const t0 = Date.now();
+      try {
+        const result = await generateObject({
+          model: provider,
+          schema: ImageAnalysisSchema,
+          system: buildImageAnalysisPrompt(farm, weather),
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: `Photos attached (${images.map((i) => i.plant_part).join(", ")}). Analyse them.`,
+                },
+                ...urls.map((u) => ({ type: "image" as const, image: new URL(u) })),
+              ],
+            },
+          ],
+        });
+        analysis = result.object as ImageAnalysis;
+        tracker.set("gatewayStatus", "200");
+        tracker.ok("ai_response", Date.now() - t0, `${analysis.candidates?.length ?? 0} candidates`);
+        tracker.ok("json_parse", 0, "schema validated");
+      } catch (err) {
+        const stage = aiStage(err);
+        tracker.debug.currentStage = stage;
+        throw tracker.run(stage, async () => {
+          throw err;
+        }) as never;
+      }
+
+      await tracker.run("db_save", async () => {
+        const { error } = await ctx.supabase
+          .from("crop_scans")
+          .update({
+            status: "analyzed",
+            crop_name: analysis.crop || farm.crop,
+            plant_parts: images.map((i) => i.plant_part),
+            image_analysis: analysis as never,
+            candidates: analysis.candidates as never,
+          })
+          .eq("id", data.scanId);
+        if (error) throw new Error(error.message);
+        return true;
+      });
+
+      return { ...analysis, debug: tracker.debug };
     } catch (err) {
-      throw aiError(err);
+      if (err instanceof Error && err.message.includes("CROPHEALTH_ERR::")) throw err;
+      throw tracker.fail(tracker.debug.currentStage ?? "ai_request", describeError(err));
     }
-
-    await ctx.supabase
-      .from("crop_scans")
-      .update({
-        status: "analyzed",
-        crop_name: analysis.crop || farm.crop,
-        plant_parts: images.map((i) => i.plant_part),
-        image_analysis: analysis as never,
-        candidates: analysis.candidates as never,
-      })
-      .eq("id", data.scanId);
-
-    return analysis;
   });
+
 
 export const generateScanQuestions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
