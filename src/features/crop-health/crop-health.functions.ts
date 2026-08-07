@@ -441,20 +441,32 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
   .inputValidator((i: { scanId: string }) => i)
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
-    const { data: scan } = await ctx.supabase
-      .from("crop_scans")
-      .select("id, farm_snapshot, weather_snapshot, image_analysis")
-      .eq("id", data.scanId)
-      .maybeSingle();
-    if (!scan) throw new Error("Scan not found");
+    const { StageTracker, aiStage } = await import("./diagnostics.server");
+    const tracker = new StageTracker({ scanId: data.scanId, visionModel: BHOOMITRA_CHAT_MODEL });
 
+    const scan = await tracker.run("farm_context", async () => {
+      const { data: row, error } = await ctx.supabase
+        .from("crop_scans")
+        .select("id, farm_id, farm_snapshot, weather_snapshot, image_analysis")
+        .eq("id", data.scanId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!row) throw new Error("Scan not found");
+      if (!(row.image_analysis as { candidates?: unknown[] } | null)?.candidates?.length) {
+        throw new Error("Run image analysis first");
+      }
+      return row;
+    });
+    tracker.set("farmId", (scan.farm_id as string) ?? null);
     const analysis = scan.image_analysis as unknown as ImageAnalysis;
-    if (!analysis?.candidates?.length) throw new Error("Run image analysis first");
+    const weatherSnap = scan.weather_snapshot as unknown as WeatherSnapshot | null;
+    tracker.set("weatherLoaded", Boolean(weatherSnap?.available));
 
     const { buildQuestionsPrompt } = await import("./prompts.server");
-    const { provider } = await gatewayModel();
+    const { provider } = await tracker.run("ai_request", async () => gatewayModel());
 
     let questions: ScanQuestion[];
+    const t0 = Date.now();
     try {
       const result = await generateObject({
         model: provider,
@@ -467,31 +479,39 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
         prompt: "Generate the confirmation questions now.",
       });
       questions = result.object.questions as ScanQuestion[];
+      tracker.set("gatewayStatus", "200");
+      tracker.ok("ai_response", Date.now() - t0);
+      tracker.ok("json_parse", 0, "schema validated");
+      tracker.ok("questions", 0, `${questions.length} questions`);
     } catch (err) {
-      throw aiError(err);
+      throw tracker.recordFailure(aiStage(err), err, Date.now() - t0);
     }
 
-    await ctx.supabase.from("crop_scan_questions").delete().eq("scan_id", data.scanId);
-    const rows = questions.slice(0, 6).map((q, index) => ({
-      scan_id: data.scanId,
-      user_id: ctx.userId,
-      question: q.question,
-      help_text: q.helpText || null,
-      category: q.category,
-      input_type: q.inputType,
-      options: q.options as never,
-      targets: q.targets as never,
-      sort_order: index,
-    }));
-    const { data: saved, error } = await ctx.supabase
-      .from("crop_scan_questions")
-      .insert(rows)
-      .select("*");
-    if (error) throw new Error(error.message);
+    const saved = await tracker.run("db_save", async () => {
+      await ctx.supabase.from("crop_scan_questions").delete().eq("scan_id", data.scanId);
+      const rows = questions.slice(0, 6).map((q, index) => ({
+        scan_id: data.scanId,
+        user_id: ctx.userId,
+        question: q.question,
+        help_text: q.helpText || null,
+        category: q.category,
+        input_type: q.inputType,
+        options: q.options as never,
+        targets: q.targets as never,
+        sort_order: index,
+      }));
+      const { data: inserted, error } = await ctx.supabase
+        .from("crop_scan_questions")
+        .insert(rows)
+        .select("*");
+      if (error) throw new Error(error.message);
+      await ctx.supabase.from("crop_scans").update({ status: "questioning" }).eq("id", data.scanId);
+      return inserted;
+    });
 
-    await ctx.supabase.from("crop_scans").update({ status: "questioning" }).eq("id", data.scanId);
-    return saved as Array<{ id: string }> as never as ScanQuestion[];
+    return { questions: saved as never as ScanQuestion[], debug: tracker.debug };
   });
+
 
 export const saveScanAnswers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
