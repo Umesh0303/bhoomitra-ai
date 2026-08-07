@@ -59,6 +59,39 @@ export class StageTracker {
     console.log(`[crop-health] ✓ ${STAGE_LABEL[stage]} (${ms}ms)${note ? ` — ${note}` : ""}`);
   }
 
+  /** Records a failed stage (logs status, bodies, stack) and returns the error to throw. */
+  recordFailure(stage: ScanStage, err: unknown, ms = 0): Error {
+    const d = describeError(err);
+    this.debug.currentStage = stage;
+    this.debug.stages.push({
+      stage,
+      label: STAGE_LABEL[stage],
+      status: "failed",
+      ms,
+      note: d.message,
+    });
+    this.debug.totalMs = Date.now() - this.startedAt;
+    if (d.status) this.debug.gatewayStatus = String(d.status);
+    console.error(
+      `[crop-health] ✗ ${STAGE_FAILURE[stage]} (${ms}ms)`,
+      JSON.stringify(
+        {
+          scanId: this.debug.scanId,
+          stage,
+          httpStatus: d.status,
+          message: d.message,
+          gatewayResponse: d.gatewayResponse,
+          modelResponse: d.modelResponse,
+        },
+        null,
+        2,
+      ),
+      "\n",
+      d.stack,
+    );
+    return this.fail(stage, d);
+  }
+
   /** Runs one stage; on failure logs everything and throws a structured error. */
   async run<T>(stage: ScanStage, fn: () => Promise<T>, note?: (v: T) => string): Promise<T> {
     this.debug.currentStage = stage;
@@ -68,36 +101,9 @@ export class StageTracker {
       this.ok(stage, Date.now() - t0, note?.(value));
       return value;
     } catch (err) {
-      const ms = Date.now() - t0;
-      const d = describeError(err);
-      this.debug.stages.push({
-        stage,
-        label: STAGE_LABEL[stage],
-        status: "failed",
-        ms,
-        note: d.message,
-      });
-      this.debug.totalMs = Date.now() - this.startedAt;
-      if (d.status) this.debug.gatewayStatus = String(d.status);
-      console.error(
-        `[crop-health] ✗ ${STAGE_FAILURE[stage]} (${ms}ms)`,
-        JSON.stringify(
-          {
-            scanId: this.debug.scanId,
-            stage,
-            httpStatus: d.status,
-            message: d.message,
-            gatewayResponse: d.gatewayResponse,
-            modelResponse: d.modelResponse,
-          },
-          null,
-          2,
-        ),
-        "\n",
-        d.stack,
-      );
-      throw this.fail(stage, d);
+      throw this.recordFailure(stage, err, Date.now() - t0);
     }
+
   }
 
   fail(stage: ScanStage, d: ErrDetail): Error {
