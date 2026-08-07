@@ -255,6 +255,7 @@ function ScanWizard() {
             Continue
           </button>
         </div>
+        <ScanDebugPanel debug={debug} error={stageError} />
       </div>
     );
   }
@@ -262,6 +263,17 @@ function ScanWizard() {
   return (
     <div className="space-y-4">
       {farm && weather && <FarmContextCard farm={farm} weather={weather} />}
+
+      {stageError && (
+        <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
+          <p className="font-semibold text-destructive">
+            {stageError.failure}
+            {stageError.status ? ` · HTTP ${stageError.status}` : ""}
+          </p>
+          <p className="mt-1 text-muted-foreground">{stageError.message}</p>
+        </div>
+      )}
+
 
       {step === "photos" && (
         <>
