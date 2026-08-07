@@ -325,6 +325,9 @@ function ScanWizard() {
           </button>
         </div>
       )}
+
+      <ScanDebugPanel debug={debug} error={stageError} />
     </div>
+
   );
 }
