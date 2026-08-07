@@ -14,6 +14,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { BHOOMITRA_CHAT_MODEL } from "@/lib/ai-config";
 import { findCropTemplate, stageForDay } from "@/lib/calendar/crop-stages";
 import { calibrateConfidence, isUncertain, type EvidenceSources } from "./confidence";
+import type { ScanDebug } from "./diagnostics";
+
 import type {
   Candidate,
   Citation,
