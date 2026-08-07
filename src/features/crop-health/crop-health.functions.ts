@@ -173,12 +173,15 @@ async function gatewayModel() {
   return { provider: createLovableAiGatewayProvider(key)(BHOOMITRA_CHAT_MODEL), key };
 }
 
+/** Never swallows the cause: logs it fully and keeps the real message visible. */
 function aiError(err: unknown): Error {
   const msg = err instanceof Error ? err.message : String(err);
-  if (/429|rate limit/i.test(msg)) return new Error("AI is busy right now. Please retry in a moment.");
-  if (/402|credit/i.test(msg)) return new Error("AI credits are exhausted for this workspace.");
-  return new Error("The AI could not complete this step. Please retry.");
+  console.error("[crop-health] AI call failed", msg, "\n", err instanceof Error ? err.stack : "");
+  if (/429|rate limit/i.test(msg)) return new Error(`AI is busy (429). ${msg}`);
+  if (/402|credit/i.test(msg)) return new Error(`AI credits exhausted (402). ${msg}`);
+  return new Error(`AI Gateway request failed — ${msg}`);
 }
+
 
 type SupabaseCtx = { supabase: any; userId: string };
 
