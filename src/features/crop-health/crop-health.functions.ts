@@ -409,12 +409,9 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
         tracker.ok("ai_response", Date.now() - t0, `${analysis.candidates?.length ?? 0} candidates`);
         tracker.ok("json_parse", 0, "schema validated");
       } catch (err) {
-        const stage = aiStage(err);
-        tracker.debug.currentStage = stage;
-        throw tracker.run(stage, async () => {
-          throw err;
-        }) as never;
+        throw tracker.recordFailure(aiStage(err), err, Date.now() - t0);
       }
+
 
       await tracker.run("db_save", async () => {
         const { error } = await ctx.supabase
