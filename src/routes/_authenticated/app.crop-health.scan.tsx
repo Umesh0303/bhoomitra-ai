@@ -10,6 +10,7 @@ import { FarmContextCard } from "@/features/crop-health/components/FarmContextCa
 import { ImageUploader } from "@/features/crop-health/components/ImageUploader";
 import { AnalysisProgress } from "@/features/crop-health/components/AnalysisProgress";
 import { QuestionForm } from "@/features/crop-health/components/QuestionForm";
+import { ScanDebugPanel } from "@/features/crop-health/components/ScanDebugPanel";
 import {
   createScan,
   analyzeScanImages,
@@ -17,6 +18,14 @@ import {
   saveScanAnswers,
   fuseScanEvidence,
 } from "@/features/crop-health/crop-health.functions";
+import {
+  emptyDebug,
+  mergeDebug,
+  parseStageError,
+  stageErrorMessage,
+  type ScanDebug,
+  type StageErrorPayload,
+} from "@/features/crop-health/diagnostics";
 import {
   getScanWithMedia,
   uploadScanImages,
@@ -28,6 +37,7 @@ import {
   type FarmSnapshot,
   type WeatherSnapshot,
 } from "@/features/crop-health/types";
+
 
 export const Route = createFileRoute("/_authenticated/app/crop-health/scan")({
   component: ScanWizard,
