@@ -693,25 +693,42 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     let fused: z.infer<typeof FusionSchema>;
     const t0 = Date.now();
     try {
+      const system = buildFusionPrompt({
+        farm,
+        weather,
+        analysis,
+        questions,
+        knowledge: knowledge.text,
+        previous,
+      });
+      tracker.debug.vision.promptChars = system.length;
+      tracker.raw("visionRequest", { model: BHOOMITRA_CHAT_MODEL, systemChars: system.length });
+      tracker.raw("expectedSchema", "FusionSchema: diagnosis{...}, confidence, uncertain, evidence{image,answers,weather,farm,knowledge}, reasoning, differential, missingEvidence[], progression, treatmentPlan{organic,chemical,cultural,preventive}, weatherRisk, healthScore, alerts[], followUpDays");
       const result = await generateObject({
         model: provider,
         schema: FusionSchema,
-        system: buildFusionPrompt({
-          farm,
-          weather,
-          analysis,
-          questions,
-          knowledge: knowledge.text,
-          previous,
-        }),
+        system,
         prompt: "Fuse all evidence and produce the final diagnosis now.",
       });
       fused = result.object;
+      const ms = Date.now() - t0;
       tracker.set("gatewayStatus", "200");
-      tracker.ok("ai_response", Date.now() - t0);
+      Object.assign(tracker.debug.vision, {
+        gatewayStatus: "200",
+        responseMs: ms,
+        promptTokens: result.usage?.inputTokens ?? null,
+        completionTokens: result.usage?.outputTokens ?? null,
+        totalTokens: result.usage?.totalTokens ?? null,
+        requestId: (result.response as { id?: string } | undefined)?.id ?? null,
+      });
+      tracker.perf("reasoningMs", ms);
+      tracker.raw("visionResponse", fused);
+      tracker.ok("ai_response", ms);
       tracker.ok("json_parse", 0, "schema validated");
+      tracker.ok("final_diagnosis", 0, fused.diagnosis?.name ?? "unnamed");
     } catch (err) {
-      throw tracker.recordFailure(aiStage(err), err, Date.now() - t0);
+      const stage = aiStage(err);
+      throw tracker.recordFailure(stage === "ai_request" ? "final_diagnosis" : stage, err, Date.now() - t0);
     }
 
     const answered = questions.filter((q) => q.answer && q.answer.trim().length > 0).length;
@@ -723,8 +740,18 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       hasKnowledge: knowledge.citations.length > 0,
       imageQualityOk: analysis.imageQuality?.usable !== false,
     };
-    const confidence = calibrateConfidence(fused.confidence, sources);
+    const confidence = await tracker.run("confidence", async () => {
+      const value = calibrateConfidence(fused.confidence, sources);
+      if (!Number.isFinite(value)) throw new Error("Calibration produced a non-numeric confidence");
+      return value;
+    }, (c) => `${fused.confidence}% raw → ${c}% calibrated`);
     const uncertain = fused.uncertain || isUncertain(confidence);
+
+    const plan = fused.treatmentPlan;
+    const treatmentCount =
+      plan.organic.length + plan.chemical.length + plan.cultural.length + plan.preventive.length;
+    if (treatmentCount) tracker.ok("treatment", 0, `${treatmentCount} treatments`);
+    else tracker.skipped("treatment", "Model returned no treatments");
 
     const out: FusionResult = {
       ...(fused as unknown as FusionResult),
@@ -732,6 +759,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       uncertain,
       citations: knowledge.citations,
     };
+
 
     await tracker.run("db_save", async () => {
       const { error } = await ctx.supabase
