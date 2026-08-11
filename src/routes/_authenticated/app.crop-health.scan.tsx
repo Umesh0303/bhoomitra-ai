@@ -88,13 +88,48 @@ function ScanWizard() {
   const [busy, setBusy] = useState(false);
   const [debug, setDebug] = useState<ScanDebug | null>(null);
   const [stageError, setStageError] = useState<StageErrorPayload | null>(null);
+  /** Retry only the failed stage — successful stages are never re-run. */
+  const [retry, setRetry] = useState<{ label: string; run: () => void } | null>(null);
 
   const selectedFarm = useMemo(() => farms.find((f) => f.id === farmId), [farms, farmId]);
 
-  /** Surfaces the exact failing stage; never a generic "AI could not complete". */
-  function reportFailure(err: unknown, fallback: string) {
+  /** Appends a client-side stage (compression/upload) to the diagnostics timeline. */
+  function pushClientStage(
+    stage: "image_compression" | "images_uploaded",
+    label: string,
+    ms: number,
+    note: string,
+  ) {
+    setDebug((d) => {
+      const base = d ?? emptyDebug({ scanId, farmId, dev: import.meta.env.DEV });
+      const now = Date.now();
+      return {
+        ...base,
+        imagesCount: images.length,
+        currentStage: stage,
+        stages: [
+          ...base.stages,
+          {
+            stage,
+            label,
+            status: "ok" as const,
+            ms,
+            startedAt: now - ms,
+            endedAt: now,
+            retries: 0,
+            note,
+          },
+        ],
+        perf: { ...base.perf, [stage === "image_compression" ? "compressionMs" : "uploadMs"]: ms },
+      };
+    });
+  }
+
+  /** Surfaces the exact failing stage + code; never a generic "AI could not complete". */
+  function reportFailure(err: unknown, fallback: string, retryAction?: { label: string; run: () => void }) {
     const payload = parseStageError(err);
     setStageError(payload);
+    setRetry(retryAction ?? null);
     if (payload?.debug) setDebug((d) => mergeDebug(d, payload.debug));
     if (import.meta.env.DEV) {
       console.error("[crop-health] pipeline failure", { fallback, payload, error: err });
@@ -127,56 +162,81 @@ function ScanWizard() {
         }),
       );
       setStageError(null);
+      setRetry(null);
       setStep("photos");
     } catch (err) {
-      reportFailure(err, "Farm context lookup failed");
+      reportFailure(err, "Farm context lookup failed", { label: "Retry farm context", run: startScan });
     } finally {
       setBusy(false);
     }
   }
 
-  async function runAnalysis() {
+  /** Uploads photos, then runs analysis + question generation. */
+  async function runAnalysis(skipUpload = false) {
     if (!scanId) return;
     if (!images.length) {
       toast.error("Add at least one photo");
       return;
     }
     setStageError(null);
-    setUploading(true);
-    const uploadStart = Date.now();
-    try {
-      await uploadScanImages(scanId, images, (done, total) => setProgress({ done, total }));
-      setDebug((d) => {
-        const base = d ?? emptyDebug({ scanId, farmId, dev: import.meta.env.DEV });
-        return {
-          ...base,
-          imagesCount: images.length,
-          currentStage: "images_uploaded",
-          stages: [
-            ...base.stages,
-            {
-              stage: "images_uploaded" as const,
-              label: "Images uploaded",
-              status: "ok" as const,
-              ms: Date.now() - uploadStart,
-              note: `${images.length} images`,
-            },
-          ],
-        };
-      });
-    } catch (err) {
+    setRetry(null);
+
+    if (!skipUpload) {
+      const compressedMs = images.reduce((a, i) => a + (i.compressMs ?? 0), 0);
+      if (compressedMs) {
+        pushClientStage(
+          "image_compression",
+          "Image compression",
+          compressedMs,
+          `${images.length} images · ${images.reduce((a, i) => a + (i.bytes ?? 0), 0)} bytes`,
+        );
+      }
+      setUploading(true);
+      const uploadStart = Date.now();
+      try {
+        await uploadScanImages(scanId, images, (done, total) => setProgress({ done, total }));
+        pushClientStage(
+          "images_uploaded",
+          "Image upload",
+          Date.now() - uploadStart,
+          `${images.length} images`,
+        );
+      } catch (err) {
+        setUploading(false);
+        reportFailure(err, "Image upload failed", {
+          label: "Retry upload",
+          run: () => void runAnalysis(false),
+        });
+        return;
+      }
       setUploading(false);
-      reportFailure(err, "Image upload failed");
-      return;
+      setProgress(null);
     }
-    setUploading(false);
-    setProgress(null);
+
     setStep("analyzing");
     setActiveStep(0);
     try {
       const analysis = await analyze({ data: { scanId } });
       setDebug((d) => mergeDebug(d, analysis.debug as ScanDebug));
       setActiveStep(4);
+    } catch (err) {
+      setStep("photos");
+      reportFailure(err, "Analysis failed", {
+        label: "Retry analysis",
+        run: () => void runAnalysis(true),
+      });
+      return;
+    }
+    await runQuestions();
+  }
+
+  /** Question generation only — analysis is not re-run. */
+  async function runQuestions() {
+    if (!scanId) return;
+    setStageError(null);
+    setRetry(null);
+    setStep("analyzing");
+    try {
       const asked = await askQuestions({ data: { scanId } });
       setDebug((d) => mergeDebug(d, asked.debug as ScanDebug));
       const scan = await getScanWithMedia(scanId);
@@ -187,13 +247,17 @@ function ScanWizard() {
       setStep("questions");
     } catch (err) {
       setStep("photos");
-      reportFailure(err, "Analysis failed");
+      reportFailure(err, "Question generation failed", {
+        label: "Retry question generation",
+        run: () => void runQuestions(),
+      });
     }
   }
 
   async function finish(answers: Array<{ id: string; answer: string }>) {
     if (!scanId) return;
     setStageError(null);
+    setRetry(null);
     setStep("fusing");
     setActiveStep(5);
     try {
@@ -205,9 +269,13 @@ function ScanWizard() {
       navigate({ to: "/app/crop-health/$scanId", params: { scanId } });
     } catch (err) {
       setStep("questions");
-      reportFailure(err, "Evidence fusion failed");
+      reportFailure(err, "Evidence fusion failed", {
+        label: "Retry final diagnosis",
+        run: () => void finish([]),
+      });
     }
   }
+
 
 
   if (step === "farm") {
