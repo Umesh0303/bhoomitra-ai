@@ -786,7 +786,9 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       return true;
     });
 
+    tracker.perf("fusionTotalMs", tracker.debug.totalMs);
     return { ...out, debug: tracker.debug };
+
   });
 
 
