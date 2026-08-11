@@ -489,7 +489,12 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
     const { StageTracker, aiStage } = await import("./diagnostics.server");
-    const tracker = new StageTracker({ scanId: data.scanId, visionModel: BHOOMITRA_CHAT_MODEL });
+    const tracker = new StageTracker({
+      scanId: data.scanId,
+      userId: ctx.userId,
+      visionModel: BHOOMITRA_CHAT_MODEL,
+    });
+    tracker.debug.vision.model = BHOOMITRA_CHAT_MODEL;
 
     const scan = await tracker.run("farm_context", async () => {
       const { data: row, error } = await ctx.supabase
@@ -515,24 +520,39 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
     let questions: ScanQuestion[];
     const t0 = Date.now();
     try {
+      const system = buildQuestionsPrompt(
+        scan.farm_snapshot as unknown as FarmSnapshot,
+        scan.weather_snapshot as unknown as WeatherSnapshot,
+        analysis,
+      );
+      tracker.debug.vision.promptChars = system.length;
+      tracker.raw("expectedSchema", "QuestionsSchema: questions[<=6]{question,helpText,category,inputType(single|multi),options[>=2]{label,value},targets[]}");
       const result = await generateObject({
         model: provider,
         schema: QuestionsSchema,
-        system: buildQuestionsPrompt(
-          scan.farm_snapshot as unknown as FarmSnapshot,
-          scan.weather_snapshot as unknown as WeatherSnapshot,
-          analysis,
-        ),
+        system,
         prompt: "Generate the confirmation questions now.",
       });
       questions = result.object.questions as ScanQuestion[];
+      const ms = Date.now() - t0;
       tracker.set("gatewayStatus", "200");
-      tracker.ok("ai_response", Date.now() - t0);
+      Object.assign(tracker.debug.vision, {
+        gatewayStatus: "200",
+        responseMs: ms,
+        promptTokens: result.usage?.inputTokens ?? null,
+        completionTokens: result.usage?.outputTokens ?? null,
+        totalTokens: result.usage?.totalTokens ?? null,
+        requestId: (result.response as { id?: string } | undefined)?.id ?? null,
+      });
+      tracker.perf("questionsMs", ms);
+      tracker.raw("visionResponse", questions);
+      tracker.ok("ai_response", ms);
       tracker.ok("json_parse", 0, "schema validated");
       tracker.ok("questions", 0, `${questions.length} questions`);
     } catch (err) {
-      throw tracker.recordFailure(aiStage(err), err, Date.now() - t0);
+      throw tracker.recordFailure(aiStage(err) === "ai_request" ? "questions" : aiStage(err), err, Date.now() - t0);
     }
+
 
     const saved = await tracker.run("db_save", async () => {
       await ctx.supabase.from("crop_scan_questions").delete().eq("scan_id", data.scanId);
