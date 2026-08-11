@@ -602,7 +602,13 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<FusionResult & { debug: ScanDebug }> => {
     const ctx = context as unknown as SupabaseCtx;
     const { StageTracker, aiStage } = await import("./diagnostics.server");
-    const tracker = new StageTracker({ scanId: data.scanId, visionModel: BHOOMITRA_CHAT_MODEL });
+    const tracker = new StageTracker({
+      scanId: data.scanId,
+      userId: ctx.userId,
+      visionModel: BHOOMITRA_CHAT_MODEL,
+    });
+    tracker.debug.vision.model = BHOOMITRA_CHAT_MODEL;
+
 
     const scan = await tracker.run("farm_context", async () => {
       const { data: row, error } = await ctx.supabase
