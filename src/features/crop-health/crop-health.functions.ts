@@ -661,12 +661,17 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     ]
       .join(" ")
       .trim();
-    const knowledge = await tracker.run(
+    const knowledge = await tracker.runSoft(
       "knowledge",
       async () => retrieveKnowledge(ctx, ragQuery, key),
+      { text: "", citations: [] as Citation[] },
       (k) => `${k.citations.length} citations`,
     );
     tracker.set("knowledgeLoaded", knowledge.citations.length > 0);
+    tracker.raw("knowledgeChunks", knowledge.text);
+    tracker.raw("farmContext", farm);
+    tracker.raw("weatherResponse", weather);
+
 
     let previous: { diagnosis: string; date: string; severity: string } | null = null;
     if (scan.parent_scan_id) {
