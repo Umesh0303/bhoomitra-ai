@@ -322,7 +322,7 @@ function ScanWizard() {
             Continue
           </button>
         </div>
-        <ScanDebugPanel debug={debug} error={stageError} />
+        <ScanDebugPanel debug={debug} error={stageError} onRetryStage={retry?.run} retryLabel={retry?.label} />
       </div>
     );
   }
@@ -352,7 +352,7 @@ function ScanWizard() {
             progress={progress}
           />
           <button
-            onClick={runAnalysis}
+            onClick={() => void runAnalysis(false)}
             disabled={uploading || images.length === 0}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
@@ -393,7 +393,7 @@ function ScanWizard() {
         </div>
       )}
 
-      <ScanDebugPanel debug={debug} error={stageError} />
+      <ScanDebugPanel debug={debug} error={stageError} onRetryStage={retry?.run} retryLabel={retry?.label} />
     </div>
 
   );
