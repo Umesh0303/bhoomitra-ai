@@ -182,15 +182,14 @@ function ScanWizard() {
     setRetry(null);
 
     if (!skipUpload) {
-      const compressedMs = images.reduce((a, i) => a + (i.compressMs ?? 0), 0);
-      if (compressedMs) {
-        pushClientStage(
-          "image_compression",
-          "Image compression",
-          compressedMs,
-          `${images.length} images · ${images.reduce((a, i) => a + (i.bytes ?? 0), 0)} bytes`,
-        );
-      }
+      const totalBytes = images.reduce((a, i) => a + (i.bytes ?? 0), 0);
+      pushClientStage(
+        "image_compression",
+        "Image compression",
+        0,
+        `${images.length} images · ${totalBytes} bytes after compression`,
+      );
+
       setUploading(true);
       const uploadStart = Date.now();
       try {
