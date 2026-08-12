@@ -152,7 +152,23 @@ function toConfidence(v: unknown): number {
   return 0.4;
 }
 
+/** Last-resort type guess from a candidate name (legacy payloads only). */
+function inferType(name: string): string {
+  const n = name.toLowerCase();
+  if (/virus|viral|mosaic|curl/.test(n)) return "viral";
+  if (/bacter|blight.*bacter/.test(n)) return "bacterial";
+  if (/fung|mildew|rust|rot|anthracnose|wilt/.test(n)) return "fungal";
+  if (/thrip|mite|aphid|borer|caterpillar|whitefly|pest|insect/.test(n)) return "pest";
+  if (/deficien|nutrient|nitrogen|potassium|magnesium|zinc/.test(n)) return "nutrient";
+  if (/water|drought|overwater/.test(n)) return "water";
+  if (/heat|sunburn|scorch/.test(n)) return "heat";
+  if (/cold|frost|chill/.test(n)) return "cold";
+  if (/physical|mechanical|injury|damage from/.test(n)) return "physical";
+  return "unknown";
+}
+
 function toType(v: unknown): (typeof CANDIDATE_TYPES)[number] {
+
   const key = String(v ?? "")
     .trim()
     .toLowerCase()
