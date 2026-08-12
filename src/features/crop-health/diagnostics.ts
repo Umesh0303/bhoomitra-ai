@@ -251,6 +251,8 @@ export function emptyVision(model = ""): VisionMeta {
 export type RawPayloads = {
   visionRequest?: string;
   visionResponse?: string;
+  normalizedResponse?: string;
+
   knowledgeChunks?: string;
   weatherResponse?: string;
   farmContext?: string;
