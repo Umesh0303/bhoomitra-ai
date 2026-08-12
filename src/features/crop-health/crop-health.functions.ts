@@ -23,7 +23,6 @@ import {
   validateVision,
 } from "./vision-normalize";
 
-
 import type {
   Candidate,
   Citation,
@@ -61,8 +60,6 @@ const CandidateSchema = z.object({
 
 // Vision output contract lives in vision-normalize.ts (canonical schema +
 // normalization layer) so the model and the app share one definition.
-
-
 
 const QuestionsSchema = z.object({
   questions: z
@@ -184,7 +181,6 @@ function aiError(err: unknown): Error {
   return new Error(`AI Gateway request failed — ${msg}`);
 }
 
-
 type SupabaseCtx = { supabase: any; userId: string };
 
 async function loadFarmSnapshot(ctx: SupabaseCtx, farmId: string): Promise<FarmSnapshot> {
@@ -199,10 +195,7 @@ async function loadFarmSnapshot(ctx: SupabaseCtx, farmId: string): Promise<FarmS
   let stageId: string | null = null;
   let das: number | null = null;
   if (farm.sowing_date) {
-    das = Math.max(
-      0,
-      Math.round((Date.now() - new Date(farm.sowing_date).getTime()) / 86_400_000),
-    );
+    das = Math.max(0, Math.round((Date.now() - new Date(farm.sowing_date).getTime()) / 86_400_000));
     const template = findCropTemplate(farm.current_crop);
     const s = stageForDay(template, das);
     stage = s.label;
@@ -215,7 +208,9 @@ async function loadFarmSnapshot(ctx: SupabaseCtx, farmId: string): Promise<FarmS
     crop: farm.current_crop,
     soilType: farm.soil_type,
     irrigation: farm.irrigation_method,
-    waterSources: (farm.farm_water_sources ?? []).map((w: { water_source: string }) => w.water_source),
+    waterSources: (farm.farm_water_sources ?? []).map(
+      (w: { water_source: string }) => w.water_source,
+    ),
     area: `${farm.total_area} ${farm.area_unit}`,
     location: [farm.village, farm.district, farm.state].filter(Boolean).join(", "),
     stage,
@@ -284,7 +279,10 @@ async function retrieveKnowledge(
     const top = rows.slice(0, 5);
     return {
       text: top
-        .map((r, i) => `[${i + 1}] ${r.filename}${r.page_number ? ` p.${r.page_number}` : ""}\n${r.chunk_text}`)
+        .map(
+          (r, i) =>
+            `[${i + 1}] ${r.filename}${r.page_number ? ` p.${r.page_number}` : ""}\n${r.chunk_text}`,
+        )
         .join("\n\n"),
       citations: top.map((r) => ({
         filename: r.filename,
@@ -372,7 +370,10 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
       const urls = await tracker.run(
         "signed_urls",
         async () => {
-          const signed = await signPaths(ctx, images.map((i) => i.storage_path));
+          const signed = await signPaths(
+            ctx,
+            images.map((i) => i.storage_path),
+          );
           if (signed.length !== images.length) {
             throw new Error(`Signed ${signed.length}/${images.length} images`);
           }
@@ -381,11 +382,15 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
         (u) => `${u.length} urls`,
       );
 
-      const farm = await tracker.run("farm_context", async () => {
-        const snap = scan.farm_snapshot as unknown as FarmSnapshot | null;
-        if (!snap) throw new Error("Farm snapshot missing on scan");
-        return snap;
-      }, (f) => f.farmName);
+      const farm = await tracker.run(
+        "farm_context",
+        async () => {
+          const snap = scan.farm_snapshot as unknown as FarmSnapshot | null;
+          if (!snap) throw new Error("Farm snapshot missing on scan");
+          return snap;
+        },
+        (f) => f.farmName,
+      );
       tracker.raw("farmContext", farm);
 
       if (farm.stage) {
@@ -394,13 +399,17 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
         tracker.skipped("crop_calendar", "No sowing date on this farm");
       }
 
-      const weather = await tracker.run("weather", async () => {
-        const snap = (scan.weather_snapshot as unknown as WeatherSnapshot | null) ?? {
-          available: false,
-          summary: "No weather snapshot on this scan.",
-        };
-        return snap;
-      }, (w) => (w.available ? "available" : "unavailable"));
+      const weather = await tracker.run(
+        "weather",
+        async () => {
+          const snap = (scan.weather_snapshot as unknown as WeatherSnapshot | null) ?? {
+            available: false,
+            summary: "No weather snapshot on this scan.",
+          };
+          return snap;
+        },
+        (w) => (w.available ? "available" : "unavailable"),
+      );
       tracker.set("weatherLoaded", weather.available);
       tracker.raw("weatherResponse", weather);
 
@@ -469,11 +478,14 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
         throw tracker.recordFailure("json_parse", err, 0);
       }
 
-
-      await tracker.run("candidates", async () => {
-        if (!analysis.candidates?.length) throw new Error("Model returned zero candidates");
-        return analysis.candidates;
-      }, (c) => c.map((x) => `${x.name} ${x.confidence}%`).join(", "));
+      await tracker.run(
+        "candidates",
+        async () => {
+          if (!analysis.candidates?.length) throw new Error("Model returned zero candidates");
+          return analysis.candidates;
+        },
+        (c) => c.map((x) => `${x.name} ${x.confidence}%`).join(", "),
+      );
 
       await tracker.run("db_save", async () => {
         const { error } = await ctx.supabase
@@ -497,8 +509,6 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
       throw tracker.fail(tracker.debug.currentStage ?? "ai_request", describeError(err));
     }
   });
-
-
 
 export const generateScanQuestions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -543,7 +553,10 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
         analysis,
       );
       tracker.debug.vision.promptChars = system.length;
-      tracker.raw("expectedSchema", "QuestionsSchema: questions[<=6]{question,helpText,category,inputType(single|multi),options[>=2]{label,value},targets[]}");
+      tracker.raw(
+        "expectedSchema",
+        "QuestionsSchema: questions[<=6]{question,helpText,category,inputType(single|multi),options[>=2]{label,value},targets[]}",
+      );
       const result = await generateObject({
         model: provider,
         schema: QuestionsSchema,
@@ -567,9 +580,12 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
       tracker.ok("json_parse", 0, "schema validated");
       tracker.ok("questions", 0, `${questions.length} questions`);
     } catch (err) {
-      throw tracker.recordFailure(aiStage(err) === "ai_request" ? "questions" : aiStage(err), err, Date.now() - t0);
+      throw tracker.recordFailure(
+        aiStage(err) === "ai_request" ? "questions" : aiStage(err),
+        err,
+        Date.now() - t0,
+      );
     }
-
 
     const saved = await tracker.run("db_save", async () => {
       await ctx.supabase.from("crop_scan_questions").delete().eq("scan_id", data.scanId);
@@ -595,7 +611,6 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
 
     return { questions: saved as never as ScanQuestion[], debug: tracker.debug };
   });
-
 
 export const saveScanAnswers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -626,7 +641,6 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     });
     tracker.debug.vision.model = BHOOMITRA_CHAT_MODEL;
 
-
     const scan = await tracker.run("farm_context", async () => {
       const { data: row, error } = await ctx.supabase
         .from("crop_scans")
@@ -646,20 +660,22 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     const analysis = scan.image_analysis as unknown as ImageAnalysis;
     const farm = scan.farm_snapshot as unknown as FarmSnapshot;
     const weather = scan.weather_snapshot as unknown as WeatherSnapshot;
-    tracker.set("farmId", farm?.farmId ?? ((scan.farm_id as string) ?? null));
+    tracker.set("farmId", farm?.farmId ?? (scan.farm_id as string) ?? null);
     tracker.set("weatherLoaded", Boolean(weather?.available));
     tracker.ok("weather", 0, weather?.available ? "available" : "unavailable");
 
-    const questions = ((scan.crop_scan_questions ?? []) as Array<{
-      question: string;
-      answer: string | null;
-      category: string | null;
-      input_type: string;
-      options: unknown;
-      targets: unknown;
-      help_text: string | null;
-      sort_order: number;
-    }>)
+    const questions = (
+      (scan.crop_scan_questions ?? []) as Array<{
+        question: string;
+        answer: string | null;
+        category: string | null;
+        input_type: string;
+        options: unknown;
+        targets: unknown;
+        help_text: string | null;
+        sort_order: number;
+      }>
+    )
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((q) => ({
         question: q.question,
@@ -688,7 +704,6 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     tracker.raw("knowledgeChunks", knowledge.text);
     tracker.raw("farmContext", farm);
     tracker.raw("weatherResponse", weather);
-
 
     let previous: { diagnosis: string; date: string; severity: string } | null = null;
     if (scan.parent_scan_id) {
@@ -720,7 +735,10 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       });
       tracker.debug.vision.promptChars = system.length;
       tracker.raw("visionRequest", { model: BHOOMITRA_CHAT_MODEL, systemChars: system.length });
-      tracker.raw("expectedSchema", "FusionSchema: diagnosis{...}, confidence, uncertain, evidence{image,answers,weather,farm,knowledge}, reasoning, differential, missingEvidence[], progression, treatmentPlan{organic,chemical,cultural,preventive}, weatherRisk, healthScore, alerts[], followUpDays");
+      tracker.raw(
+        "expectedSchema",
+        "FusionSchema: diagnosis{...}, confidence, uncertain, evidence{image,answers,weather,farm,knowledge}, reasoning, differential, missingEvidence[], progression, treatmentPlan{organic,chemical,cultural,preventive}, weatherRisk, healthScore, alerts[], followUpDays",
+      );
       const result = await generateObject({
         model: provider,
         schema: FusionSchema,
@@ -745,7 +763,11 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       tracker.ok("final_diagnosis", 0, fused.diagnosis?.name ?? "unnamed");
     } catch (err) {
       const stage = aiStage(err);
-      throw tracker.recordFailure(stage === "ai_request" ? "final_diagnosis" : stage, err, Date.now() - t0);
+      throw tracker.recordFailure(
+        stage === "ai_request" ? "final_diagnosis" : stage,
+        err,
+        Date.now() - t0,
+      );
     }
 
     const answered = questions.filter((q) => q.answer && q.answer.trim().length > 0).length;
@@ -757,11 +779,16 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       hasKnowledge: knowledge.citations.length > 0,
       imageQualityOk: analysis.imageQuality?.usable !== false,
     };
-    const confidence = await tracker.run("confidence", async () => {
-      const value = calibrateConfidence(fused.confidence, sources);
-      if (!Number.isFinite(value)) throw new Error("Calibration produced a non-numeric confidence");
-      return value;
-    }, (c) => `${fused.confidence}% raw → ${c}% calibrated`);
+    const confidence = await tracker.run(
+      "confidence",
+      async () => {
+        const value = calibrateConfidence(fused.confidence, sources);
+        if (!Number.isFinite(value))
+          throw new Error("Calibration produced a non-numeric confidence");
+        return value;
+      },
+      (c) => `${fused.confidence}% raw → ${c}% calibrated`,
+    );
     const uncertain = fused.uncertain || isUncertain(confidence);
 
     const plan = fused.treatmentPlan;
@@ -776,7 +803,6 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       uncertain,
       citations: knowledge.citations,
     };
-
 
     await tracker.run("db_save", async () => {
       const { error } = await ctx.supabase
@@ -805,9 +831,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
 
     tracker.perf("fusionTotalMs", tracker.debug.totalMs);
     return { ...out, debug: tracker.debug };
-
   });
-
 
 /** Writes follow-up reminders into the existing crop calendar (additive rows). */
 export const createScanReminders = createServerFn({ method: "POST" })

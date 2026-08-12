@@ -3,7 +3,6 @@
 
 import { CANONICAL_VISION_JSON } from "./vision-normalize";
 import type {
-
   Candidate,
   FarmSnapshot,
   ImageAnalysis,
@@ -97,7 +96,6 @@ ${CANONICAL_VISION_JSON}
 ${farmBlock(farm)}
 ${weatherBlock(weather)}`;
 }
-
 
 export function buildQuestionsPrompt(
   farm: FarmSnapshot,

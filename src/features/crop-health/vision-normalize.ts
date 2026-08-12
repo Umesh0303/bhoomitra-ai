@@ -122,7 +122,8 @@ export function extractJson(text: string): unknown {
 }
 
 const asArray = (v: unknown): string[] => {
-  if (Array.isArray(v)) return v.map((x) => (typeof x === "string" ? x : String(x))).filter(Boolean);
+  if (Array.isArray(v))
+    return v.map((x) => (typeof x === "string" ? x : String(x))).filter(Boolean);
   if (typeof v === "string" && v.trim() && !/^none$/i.test(v.trim())) return [v.trim()];
   return [];
 };
@@ -152,7 +153,10 @@ function toConfidence(v: unknown): number {
 }
 
 function toType(v: unknown): (typeof CANDIDATE_TYPES)[number] {
-  const key = String(v ?? "").trim().toLowerCase().replace(/\s+/g, "_");
+  const key = String(v ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
   const mapped = TYPE_MAP[key];
   if (!mapped) return "unknown";
   const back: Record<DiseaseType, (typeof CANDIDATE_TYPES)[number]> = {
@@ -172,7 +176,9 @@ function toType(v: unknown): (typeof CANDIDATE_TYPES)[number] {
 }
 
 function toSeverity(v: unknown, affectedPct: number): Severity {
-  const key = String(v ?? "").trim().toLowerCase();
+  const key = String(v ?? "")
+    .trim()
+    .toLowerCase();
   if ((SEVERITY_VALUES as readonly string[]).includes(key)) return key as Severity;
   if (/mild|slight/.test(key)) return "low";
   if (/medium/.test(key)) return "moderate";
@@ -201,7 +207,10 @@ export function normalizeVisionResponse(input: unknown): unknown {
   for (const wrapper of ["image_analysis", "imageAnalysis", "analysis", "result", "data"]) {
     const inner = o[wrapper];
     if (inner && typeof inner === "object" && !Array.isArray(inner)) {
-      o = { ...(inner as Record<string, unknown>), ...Object.fromEntries(Object.entries(o).filter(([k]) => k !== wrapper)) };
+      o = {
+        ...(inner as Record<string, unknown>),
+        ...Object.fromEntries(Object.entries(o).filter(([k]) => k !== wrapper)),
+      };
     }
   }
 
@@ -218,7 +227,13 @@ export function normalizeVisionResponse(input: unknown): unknown {
     .map((c) => {
       const r = (typeof c === "object" && c ? c : { name: String(c) }) as Record<string, unknown>;
       const name = pick(r, "name", "explanation", "candidate", "label", "cause", "disease");
-      const specific = pick(r, "specificDisease", "specific_disease", "scientificName", "scientific_name");
+      const specific = pick(
+        r,
+        "specificDisease",
+        "specific_disease",
+        "scientificName",
+        "scientific_name",
+      );
       return {
         name: String(name ?? "Unknown").trim(),
         specificDisease: specific == null || specific === "" ? null : String(specific),
@@ -230,7 +245,13 @@ export function normalizeVisionResponse(input: unknown): unknown {
     .filter((c) => c.name)
     .slice(0, 3);
 
-  const affectedRaw = pick(o, "affectedAreaPct", "affected_area_pct", "affectedArea", "affected_area_percent");
+  const affectedRaw = pick(
+    o,
+    "affectedAreaPct",
+    "affected_area_pct",
+    "affectedArea",
+    "affected_area_percent",
+  );
   const affectedAreaPct =
     typeof affectedRaw === "number"
       ? Math.min(100, Math.max(0, affectedRaw))
@@ -252,12 +273,23 @@ export function normalizeVisionResponse(input: unknown): unknown {
     affectedAreaPct,
     imageQuality: {
       usable: typeof q["usable"] === "boolean" ? q["usable"] : issues.length === 0,
-      score: typeof scoreRaw === "number" ? Math.min(100, Math.max(0, scoreRaw)) : issues.length ? 50 : 85,
+      score:
+        typeof scoreRaw === "number"
+          ? Math.min(100, Math.max(0, scoreRaw))
+          : issues.length
+            ? 50
+            : 85,
       issues,
     },
     candidates,
     additionalPhotosNeeded: asArray(
-      pick(o, "additionalPhotosNeeded", "additional_photos_needed", "missingEvidence", "missing_evidence"),
+      pick(
+        o,
+        "additionalPhotosNeeded",
+        "additional_photos_needed",
+        "missingEvidence",
+        "missing_evidence",
+      ),
     ),
   };
 }
@@ -267,7 +299,8 @@ export function formatZodIssues(err: z.ZodError): string {
   return err.issues
     .map((i) => {
       const path = i.path.join(".") || "(root)";
-      const received = "received" in i ? ` Received: ${String((i as { received?: unknown }).received)}` : "";
+      const received =
+        "received" in i ? ` Received: ${String((i as { received?: unknown }).received)}` : "";
       return `${path} — ${i.message}.${received}`;
     })
     .join(" | ");
