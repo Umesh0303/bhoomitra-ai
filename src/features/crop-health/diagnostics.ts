@@ -136,7 +136,12 @@ export const RECOVERY: Record<ErrorCode, { causes: string[]; action: string }> =
     action: "Retry the upload stage; if it repeats, check the crop-scans bucket policies.",
   },
   SIGNED_URL_FAILED: {
-    causes: ["Bucket policy incorrect", "Expired URL", "Storage unavailable", "Object path missing"],
+    causes: [
+      "Bucket policy incorrect",
+      "Expired URL",
+      "Storage unavailable",
+      "Object path missing",
+    ],
     action: "Regenerate signed URLs (retry this stage).",
   },
   FARM_CONTEXT_FAILED: {
@@ -156,7 +161,12 @@ export const RECOVERY: Record<ErrorCode, { causes: string[]; action: string }> =
     action: "Retry; diagnosis can continue without knowledge citations.",
   },
   VISION_REQUEST_FAILED: {
-    causes: ["Missing/invalid LOVABLE_API_KEY", "Gateway unreachable", "429 rate limit", "402 credits"],
+    causes: [
+      "Missing/invalid LOVABLE_API_KEY",
+      "Gateway unreachable",
+      "429 rate limit",
+      "402 credits",
+    ],
     action: "Check the gateway status shown below; wait and retry on 429, add credits on 402.",
   },
   VISION_TIMEOUT: {
@@ -168,7 +178,11 @@ export const RECOVERY: Record<ErrorCode, { causes: string[]; action: string }> =
     action: "Inspect the raw model response below and retry the vision stage.",
   },
   JSON_SCHEMA_FAILED: {
-    causes: ["Model emitted prose instead of JSON", "Field missing or wrong type", "Truncated output"],
+    causes: [
+      "Model emitted prose instead of JSON",
+      "Field missing or wrong type",
+      "Truncated output",
+    ],
     action: "Compare expected schema vs actual response below, then retry the stage.",
   },
   CANDIDATE_GENERATION_FAILED: {
@@ -251,6 +265,8 @@ export function emptyVision(model = ""): VisionMeta {
 export type RawPayloads = {
   visionRequest?: string;
   visionResponse?: string;
+  normalizedResponse?: string;
+
   knowledgeChunks?: string;
   weatherResponse?: string;
   farmContext?: string;
@@ -372,10 +388,7 @@ export function fmtBytes(bytes: number) {
 }
 
 /** Markdown report for "Copy Debug Report" / download. Never includes secrets. */
-export function buildDebugReport(
-  debug: ScanDebug | null,
-  error: StageErrorPayload | null,
-): string {
+export function buildDebugReport(debug: ScanDebug | null, error: StageErrorPayload | null): string {
   const d = debug ?? error?.debug ?? null;
   const lines: string[] = ["# Crop Health Analysis Report", ""];
   lines.push(`Generated: ${new Date().toISOString()}`);
@@ -398,7 +411,9 @@ export function buildDebugReport(
   if (d) {
     lines.push("", "## Vision", "");
     lines.push(`Model: ${d.vision.model || "—"}`);
-    lines.push(`Images: ${d.vision.imageCount || d.imagesCount} (${fmtBytes(d.vision.imageBytes)})`);
+    lines.push(
+      `Images: ${d.vision.imageCount || d.imagesCount} (${fmtBytes(d.vision.imageBytes)})`,
+    );
     lines.push(`Prompt chars: ${d.vision.promptChars}`);
     lines.push(`Response time: ${fmtMs(d.vision.responseMs)}`);
     lines.push(
@@ -428,7 +443,8 @@ export function buildDebugReport(
     lines.push(`Failure: ${error.failure}`);
     if (error.status) lines.push(`HTTP: ${error.status}`);
     lines.push("", "```", error.message, "```");
-    if (error.gatewayResponse) lines.push("", "Gateway response:", "```", error.gatewayResponse, "```");
+    if (error.gatewayResponse)
+      lines.push("", "Gateway response:", "```", error.gatewayResponse, "```");
     if (error.modelResponse) lines.push("", "Model response:", "```", error.modelResponse, "```");
     if (error.stack) lines.push("", "Stack:", "```", error.stack, "```");
     lines.push("", "Possible causes:", ...rec.causes.map((c) => `• ${c}`));

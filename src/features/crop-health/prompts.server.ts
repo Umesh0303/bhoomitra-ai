@@ -1,6 +1,7 @@
 // Server-only prompt construction for the Crop Health diagnostic pipeline.
 // Never imported at module scope from client-reachable files.
 
+import { CANONICAL_VISION_JSON } from "./vision-normalize";
 import type {
   Candidate,
   FarmSnapshot,
@@ -72,10 +73,25 @@ Look at every image provided. Identify the crop, the plant parts shown, and the
 visible symptoms. Consider diseases, pest damage, nutrient deficiency, water
 stress and environmental damage as possibilities.
 
-Return the TOP 3 candidate explanations with a raw confidence for each. Do NOT
-finalise a diagnosis at this step. If image quality is poor (blurry, dark,
-too far away, symptoms obscured), say so and list what additional photos are
-needed.
+Return up to 3 DIFFERENTIAL candidate explanations with a preliminary
+confidence for each. This step NEVER produces a final diagnosis — the final
+diagnosis is decided later from farmer answers, weather, farm context and the
+knowledge base. Do not force three candidates when the evidence does not
+support them. Set specificDisease to null when the evidence cannot name a
+specific disease. If image quality is poor (blurry, dark, too far away,
+symptoms obscured), set imageQuality.usable to false, explain the issues, and
+list the additional photos needed.
+
+severity must be one of: none, low, moderate, high, severe — estimated only
+from visible evidence, never invented. affectedAreaPct is a number 0-100 based
+only on visible affected tissue. confidence is a number between 0 and 1 (for
+example 0.82) — never a word like "high".
+
+OUTPUT FORMAT (mandatory):
+Return ONLY the following JSON object. No markdown, no code fences, no text
+before or after it, no extra or renamed keys, no nesting inside any wrapper.
+
+${CANONICAL_VISION_JSON}
 
 ${farmBlock(farm)}
 ${weatherBlock(weather)}`;

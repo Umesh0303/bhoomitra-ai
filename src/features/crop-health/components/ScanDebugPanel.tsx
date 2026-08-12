@@ -70,7 +70,9 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="flex items-center gap-2 font-semibold">
           <AlertTriangle className="h-3.5 w-3.5" /> AI Diagnostics Console
-          {!dev && <span className="text-muted-foreground">(production — raw payloads hidden)</span>}
+          {!dev && (
+            <span className="text-muted-foreground">(production — raw payloads hidden)</span>
+          )}
         </span>
         <span className="ml-auto flex gap-2">
           {onRetryStage && (
@@ -119,9 +121,15 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
                 </span>
               </div>
             </div>
-            {dev && failed.gatewayResponse && <Pre label="Gateway response" value={failed.gatewayResponse} />}
-            {dev && failed.modelResponse && <Pre label="Actual model response" value={failed.modelResponse} />}
-            {dev && d?.raw.expectedSchema && <Pre label="Expected schema" value={d.raw.expectedSchema} />}
+            {dev && failed.gatewayResponse && (
+              <Pre label="Gateway response" value={failed.gatewayResponse} />
+            )}
+            {dev && failed.modelResponse && (
+              <Pre label="Actual model response" value={failed.modelResponse} />
+            )}
+            {dev && d?.raw.expectedSchema && (
+              <Pre label="Expected schema" value={d.raw.expectedSchema} />
+            )}
             {dev && failed.stack && <Pre label="Stack trace" value={failed.stack} />}
           </div>
         </Card>
@@ -157,7 +165,9 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
               {d.stages.some((s) => s.status === "failed") && (
                 <li className="pl-6 font-semibold text-destructive">↓ Stopped</li>
               )}
-              {!d.stages.length && <li className="text-muted-foreground">No stages recorded yet.</li>}
+              {!d.stages.length && (
+                <li className="text-muted-foreground">No stages recorded yet.</li>
+              )}
             </ul>
           </Card>
 
@@ -175,12 +185,18 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
               <Metric label="Total tokens" value={String(d.vision.totalTokens ?? "unknown")} />
               <Metric label="Request ID" value={d.vision.requestId ?? "—"} />
             </div>
-            {dev && d.raw.visionRequest && <Pre label="Raw vision request" value={d.raw.visionRequest} />}
+            {dev && d.raw.visionRequest && (
+              <Pre label="Raw vision request" value={d.raw.visionRequest} />
+            )}
           </Card>
 
           {dev && d.raw.visionResponse && (
             <Card title="Vision response (dev)">
-              <Pre label="Model output" value={d.raw.visionResponse} />
+              <Pre label="Model output (original)" value={d.raw.visionResponse} />
+              {d.raw.normalizedResponse && (
+                <Pre label="Normalized response" value={d.raw.normalizedResponse} />
+              )}
+
               {d.raw.expectedSchema && <Pre label="Expected schema" value={d.raw.expectedSchema} />}
               {d.raw.parserError && <Pre label="Parser error" value={d.raw.parserError} />}
             </Card>
@@ -188,12 +204,16 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
 
           <Card title="Weather">
             <Row label="Loaded" value={d.weatherLoaded ? "yes" : "no"} />
-            {dev && d.raw.weatherResponse && <Pre label="Weather snapshot" value={d.raw.weatherResponse} />}
+            {dev && d.raw.weatherResponse && (
+              <Pre label="Weather snapshot" value={d.raw.weatherResponse} />
+            )}
           </Card>
 
           <Card title="Knowledge">
             <Row label="Loaded" value={d.knowledgeLoaded ? "yes" : "no"} />
-            {dev && d.raw.knowledgeChunks && <Pre label="Retrieved chunks" value={d.raw.knowledgeChunks} />}
+            {dev && d.raw.knowledgeChunks && (
+              <Pre label="Retrieved chunks" value={d.raw.knowledgeChunks} />
+            )}
           </Card>
 
           <Card title="Farm context">
@@ -233,7 +253,9 @@ function StageRow({ s, slow }: { s: StageLog; slow: boolean }) {
         {s.label}
         {s.code ? <span className="ml-1 font-mono text-destructive">[{s.code}]</span> : null}
         {s.httpStatus ? <span className="ml-1 text-destructive">HTTP {s.httpStatus}</span> : null}
-        {s.retries ? <span className="ml-1 text-muted-foreground">retries: {s.retries}</span> : null}
+        {s.retries ? (
+          <span className="ml-1 text-muted-foreground">retries: {s.retries}</span>
+        ) : null}
         {s.note ? <span className="text-muted-foreground"> — {s.note}</span> : null}
       </span>
       <span className={slow ? "font-semibold text-amber-600" : "text-muted-foreground"}>
@@ -260,7 +282,9 @@ function Card({
     <div
       className={[
         "mb-2 rounded-lg border",
-        tone === "error" ? "border-destructive/40 bg-destructive/5" : "border-border bg-background/60",
+        tone === "error"
+          ? "border-destructive/40 bg-destructive/5"
+          : "border-border bg-background/60",
       ].join(" ")}
     >
       <button
