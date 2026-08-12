@@ -168,7 +168,6 @@ function inferType(name: string): string {
 }
 
 function toType(v: unknown): (typeof CANDIDATE_TYPES)[number] {
-
   const key = String(v ?? "")
     .trim()
     .toLowerCase()
