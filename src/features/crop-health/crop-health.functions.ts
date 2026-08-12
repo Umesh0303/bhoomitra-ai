@@ -8,7 +8,7 @@
 // Prompts live in prompts.server.ts and are loaded inside handlers only.
 
 import { createServerFn } from "@tanstack/react-start";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { BHOOMITRA_CHAT_MODEL } from "@/lib/ai-config";
