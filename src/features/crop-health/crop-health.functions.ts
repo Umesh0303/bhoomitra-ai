@@ -412,14 +412,14 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
         systemChars: system.length,
         images: images.map((i) => ({ plantPart: i.plant_part, bytes: i.bytes })),
       });
-      tracker.raw("expectedSchema", "ImageAnalysisSchema: crop, plantParts[], symptoms[], severity, affectedAreaPct, imageQuality{usable,issues[]}, candidates[1-3]{name,scientificName,type,confidence,rationale}, missingEvidence[]");
+      tracker.raw("expectedSchema", CANONICAL_VISION_JSON);
 
       let analysis: ImageAnalysis;
       const t0 = Date.now();
+      let rawText = "";
       try {
-        const result = await generateObject({
+        const result = await generateText({
           model: provider,
-          schema: ImageAnalysisSchema,
           system,
           messages: [
             {
@@ -427,14 +427,14 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
               content: [
                 {
                   type: "text",
-                  text: `Photos attached (${images.map((i) => i.plant_part).join(", ")}). Analyse them.`,
+                  text: `Photos attached (${images.map((i) => i.plant_part).join(", ")}). Analyse them and return ONLY the canonical JSON object.`,
                 },
                 ...urls.map((u) => ({ type: "image" as const, image: new URL(u) })),
               ],
             },
           ],
         });
-        analysis = result.object as ImageAnalysis;
+        rawText = result.text ?? "";
         const ms = Date.now() - t0;
         tracker.set("gatewayStatus", "200");
         Object.assign(tracker.debug.vision, {
@@ -446,12 +446,27 @@ export const analyzeScanImages = createServerFn({ method: "POST" })
           requestId: (result.response as { id?: string } | undefined)?.id ?? null,
         });
         tracker.perf("visionMs", ms);
-        tracker.raw("visionResponse", analysis);
-        tracker.ok("ai_response", ms, `${analysis.candidates?.length ?? 0} candidates`);
-        tracker.ok("json_parse", 0, "schema validated");
+        // Original model output, logged separately from the normalized form.
+        tracker.raw("visionResponse", rawText);
+        tracker.ok("ai_response", ms, `${rawText.length} chars`);
       } catch (err) {
         throw tracker.recordFailure(aiStage(err), err, Date.now() - t0);
       }
+
+      try {
+        const normalized = normalizeVisionResponse(extractJson(rawText));
+        tracker.raw("normalizedResponse", normalized);
+        const canonical = validateVision(normalized);
+        analysis = toImageAnalysis(canonical);
+        tracker.ok(
+          "json_parse",
+          0,
+          `${canonical.crop} · ${canonical.severity} · ${canonical.candidates.length} candidates`,
+        );
+      } catch (err) {
+        throw tracker.recordFailure("json_parse", err, 0);
+      }
+
 
       await tracker.run("candidates", async () => {
         if (!analysis.candidates?.length) throw new Error("Model returned zero candidates");
