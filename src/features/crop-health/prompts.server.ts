@@ -1,7 +1,9 @@
 // Server-only prompt construction for the Crop Health diagnostic pipeline.
 // Never imported at module scope from client-reachable files.
 
+import { CANONICAL_VISION_JSON } from "./vision-normalize";
 import type {
+
   Candidate,
   FarmSnapshot,
   ImageAnalysis,
