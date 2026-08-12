@@ -15,6 +15,14 @@ import { BHOOMITRA_CHAT_MODEL } from "@/lib/ai-config";
 import { findCropTemplate, stageForDay } from "@/lib/calendar/crop-stages";
 import { calibrateConfidence, isUncertain, type EvidenceSources } from "./confidence";
 import type { ScanDebug } from "./diagnostics";
+import {
+  CANONICAL_VISION_JSON,
+  extractJson,
+  normalizeVisionResponse,
+  toImageAnalysis,
+  validateVision,
+} from "./vision-normalize";
+
 
 import type {
   Candidate,
