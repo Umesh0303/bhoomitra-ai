@@ -180,7 +180,11 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
 
           {dev && d.raw.visionResponse && (
             <Card title="Vision response (dev)">
-              <Pre label="Model output" value={d.raw.visionResponse} />
+              <Pre label="Model output (original)" value={d.raw.visionResponse} />
+              {d.raw.normalizedResponse && (
+                <Pre label="Normalized response" value={d.raw.normalizedResponse} />
+              )}
+
               {d.raw.expectedSchema && <Pre label="Expected schema" value={d.raw.expectedSchema} />}
               {d.raw.parserError && <Pre label="Parser error" value={d.raw.parserError} />}
             </Card>
