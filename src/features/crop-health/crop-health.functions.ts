@@ -59,16 +59,10 @@ const CandidateSchema = z.object({
   rationale: z.string(),
 });
 
-const ImageAnalysisSchema = z.object({
-  crop: z.string(),
-  plantParts: z.array(z.string()).default([]),
-  symptoms: z.array(z.string()).default([]),
-  severity: SEVERITY,
-  affectedAreaPct: z.number().min(0).max(100),
-  imageQuality: z.object({ usable: z.boolean(), issues: z.array(z.string()).default([]) }),
-  candidates: z.array(CandidateSchema).min(1).max(3),
-  missingEvidence: z.array(z.string()).default([]),
-});
+// Vision output contract lives in vision-normalize.ts (canonical schema +
+// normalization layer) so the model and the app share one definition.
+
+
 
 const QuestionsSchema = z.object({
   questions: z
