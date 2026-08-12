@@ -237,7 +237,7 @@ export function normalizeVisionResponse(input: unknown): unknown {
       return {
         name: String(name ?? "Unknown").trim(),
         specificDisease: specific == null || specific === "" ? null : String(specific),
-        type: toType(pick(r, "type", "category", "kind")),
+        type: toType(pick(r, "type", "category", "kind") ?? inferType(String(name ?? ""))),
         confidence: toConfidence(pick(r, "confidence", "probability", "likelihood", "score")),
         evidence: asArray(pick(r, "evidence", "rationale", "reason", "supporting_evidence")),
       };
