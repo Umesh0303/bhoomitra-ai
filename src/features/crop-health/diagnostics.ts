@@ -17,6 +17,10 @@ export type ScanStage =
   | "json_parse"
   | "candidates"
   | "questions"
+  | "question_ai_response"
+  | "question_normalization"
+  | "question_validation"
+  | "question_db_save"
   | "final_diagnosis"
   | "confidence"
   | "treatment"
@@ -37,6 +41,10 @@ export const STAGE_ORDER: ScanStage[] = [
   "json_parse",
   "candidates",
   "questions",
+  "question_ai_response",
+  "question_normalization",
+  "question_validation",
+  "question_db_save",
   "final_diagnosis",
   "confidence",
   "treatment",
@@ -57,6 +65,10 @@ export const STAGE_LABEL: Record<ScanStage, string> = {
   json_parse: "JSON validation",
   candidates: "Candidate generation",
   questions: "Question generation",
+  question_ai_response: "Question AI response",
+  question_normalization: "Question normalization",
+  question_validation: "Question JSON validation",
+  question_db_save: "Question database save",
   final_diagnosis: "Final diagnosis",
   confidence: "Confidence calibration",
   treatment: "Treatment generation",
@@ -77,6 +89,10 @@ export const STAGE_FAILURE: Record<ScanStage, string> = {
   json_parse: "Model returned invalid JSON / schema validation failed",
   candidates: "Candidate generation failed",
   questions: "Question generation failed",
+  question_ai_response: "Question AI request failed",
+  question_normalization: "Question response could not be normalized",
+  question_validation: "Question JSON failed schema validation",
+  question_db_save: "Saving the questions failed",
   final_diagnosis: "Final reasoning failed",
   confidence: "Confidence calibration failed",
   treatment: "Treatment generation failed",
@@ -98,6 +114,10 @@ export type ErrorCode =
   | "JSON_SCHEMA_FAILED"
   | "CANDIDATE_GENERATION_FAILED"
   | "QUESTION_GENERATION_FAILED"
+  | "QUESTION_AI_FAILED"
+  | "QUESTION_NORMALIZATION_FAILED"
+  | "QUESTION_SCHEMA_FAILED"
+  | "QUESTION_DB_SAVE_FAILED"
   | "FINAL_REASONING_FAILED"
   | "CONFIDENCE_FAILED"
   | "TREATMENT_FAILED"
@@ -118,6 +138,10 @@ export const STAGE_CODE: Record<ScanStage, ErrorCode> = {
   json_parse: "JSON_SCHEMA_FAILED",
   candidates: "CANDIDATE_GENERATION_FAILED",
   questions: "QUESTION_GENERATION_FAILED",
+  question_ai_response: "QUESTION_AI_FAILED",
+  question_normalization: "QUESTION_NORMALIZATION_FAILED",
+  question_validation: "QUESTION_SCHEMA_FAILED",
+  question_db_save: "QUESTION_DB_SAVE_FAILED",
   final_diagnosis: "FINAL_REASONING_FAILED",
   confidence: "CONFIDENCE_FAILED",
   treatment: "TREATMENT_FAILED",
@@ -188,6 +212,30 @@ export const RECOVERY: Record<ErrorCode, { causes: string[]; action: string }> =
   CANDIDATE_GENERATION_FAILED: {
     causes: ["Model returned zero candidates", "Image unusable"],
     action: "Add a clearer close-up photo and retry the analysis stage.",
+  },
+  QUESTION_AI_FAILED: {
+    causes: ["Gateway error or timeout", "Rate limit / credits", "Prompt too large"],
+    action: "Retry question generation — the vision analysis is already saved.",
+  },
+  QUESTION_NORMALIZATION_FAILED: {
+    causes: [
+      "Model returned no questions",
+      "Reply was prose or markdown instead of JSON",
+      "Questions missing usable text/options",
+    ],
+    action:
+      "Retry; check the raw question response in dev diagnostics to see the shape returned.",
+  },
+  QUESTION_SCHEMA_FAILED: {
+    causes: [
+      "Normalized questions still miss required fields",
+      "Fewer than 2 options on a multiple-choice question",
+    ],
+    action: "Retry; compare the normalized response with the canonical question contract below.",
+  },
+  QUESTION_DB_SAVE_FAILED: {
+    causes: ["RLS blocked the insert", "Invalid column value", "Scan no longer exists"],
+    action: "Check the scan owner and retry the save.",
   },
   QUESTION_GENERATION_FAILED: {
     causes: ["Image analysis missing", "Model returned invalid question set"],
