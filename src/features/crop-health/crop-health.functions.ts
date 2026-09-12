@@ -632,7 +632,9 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     }
 
     const { buildFusionPrompt } = await import("./prompts.server");
-    let fused: z.infer<typeof FusionSchema>;
+
+    // 1) Ask the model (plain text — the normalizer owns the shape contract).
+    let rawText = "";
     const t0 = Date.now();
     try {
       const system = buildFusionPrompt({
@@ -645,17 +647,14 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       });
       tracker.debug.vision.promptChars = system.length;
       tracker.raw("visionRequest", { model: BHOOMITRA_CHAT_MODEL, systemChars: system.length });
-      tracker.raw(
-        "expectedSchema",
-        "FusionSchema: diagnosis{...}, confidence, uncertain, evidence{image,answers,weather,farm,knowledge}, reasoning, differential, missingEvidence[], progression, treatmentPlan{organic,chemical,cultural,preventive}, weatherRisk, healthScore, alerts[], followUpDays",
-      );
-      const result = await generateObject({
+      tracker.raw("expectedSchema", CANONICAL_FUSION_JSON);
+      const result = await generateText({
         model: provider,
-        schema: FusionSchema,
         system,
-        prompt: "Fuse all evidence and produce the final diagnosis now.",
+        prompt:
+          "Fuse all evidence and produce the final diagnosis now. Return ONLY the canonical JSON object.",
       });
-      fused = result.object;
+      rawText = result.text ?? "";
       const ms = Date.now() - t0;
       tracker.set("gatewayStatus", "200");
       Object.assign(tracker.debug.vision, {
@@ -667,18 +666,41 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
         requestId: (result.response as { id?: string } | undefined)?.id ?? null,
       });
       tracker.perf("reasoningMs", ms);
-      tracker.raw("visionResponse", fused);
+      tracker.raw("finalResponse", rawText);
       tracker.ok("ai_response", ms);
-      tracker.ok("json_parse", 0, "schema validated");
-      tracker.ok("final_diagnosis", 0, fused.diagnosis?.name ?? "unnamed");
+      tracker.ok("final_ai_response", ms, `${rawText.length} chars`);
     } catch (err) {
       const stage = aiStage(err);
       throw tracker.recordFailure(
-        stage === "ai_request" ? "final_diagnosis" : stage,
+        stage === "ai_request" || stage === "ai_response" ? "final_ai_response" : stage,
         err,
         Date.now() - t0,
       );
     }
+
+    // 2) Normalize BEFORE validation.
+    let normalized: unknown;
+    const tNorm = Date.now();
+    try {
+      normalized = normalizeFinalDiagnosisResponse(extractFinalJson(rawText));
+      tracker.raw("normalizedFinal", normalized);
+      tracker.ok("final_normalization", Date.now() - tNorm, "canonical shape built");
+    } catch (err) {
+      throw tracker.recordFailure("final_normalization", err, Date.now() - tNorm);
+    }
+
+    // 3) Validate the canonical object.
+    let fused: z.infer<typeof FusionSchema>;
+    const tVal = Date.now();
+    try {
+      fused = validateFinalDiagnosis(normalized);
+      tracker.ok("final_validation", Date.now() - tVal, fused.diagnosis.name);
+      tracker.ok("json_parse", 0, "schema validated");
+      tracker.ok("final_diagnosis", 0, fused.diagnosis.name);
+    } catch (err) {
+      throw tracker.recordFailure("final_validation", err, Date.now() - tVal);
+    }
+
 
     const answered = questions.filter((q) => q.answer && q.answer.trim().length > 0).length;
     const sources: EvidenceSources = {
