@@ -22,6 +22,10 @@ export type ScanStage =
   | "question_validation"
   | "question_db_save"
   | "final_diagnosis"
+  | "final_ai_response"
+  | "final_normalization"
+  | "final_validation"
+  | "final_db_save"
   | "confidence"
   | "treatment"
   | "db_save"
@@ -46,7 +50,11 @@ export const STAGE_ORDER: ScanStage[] = [
   "question_validation",
   "question_db_save",
   "final_diagnosis",
+  "final_ai_response",
+  "final_normalization",
+  "final_validation",
   "confidence",
+  "final_db_save",
   "treatment",
   "db_save",
   "calendar_reminder",
@@ -70,6 +78,10 @@ export const STAGE_LABEL: Record<ScanStage, string> = {
   question_validation: "Question JSON validation",
   question_db_save: "Question database save",
   final_diagnosis: "Final diagnosis",
+  final_ai_response: "Final diagnosis AI response",
+  final_normalization: "Final diagnosis normalization",
+  final_validation: "Final diagnosis JSON validation",
+  final_db_save: "Final diagnosis database save",
   confidence: "Confidence calibration",
   treatment: "Treatment generation",
   db_save: "Database save",
@@ -94,6 +106,10 @@ export const STAGE_FAILURE: Record<ScanStage, string> = {
   question_validation: "Question JSON failed schema validation",
   question_db_save: "Saving the questions failed",
   final_diagnosis: "Final reasoning failed",
+  final_ai_response: "Final diagnosis AI request failed",
+  final_normalization: "Final diagnosis response could not be normalized",
+  final_validation: "Final diagnosis failed schema validation",
+  final_db_save: "Saving the final diagnosis failed",
   confidence: "Confidence calibration failed",
   treatment: "Treatment generation failed",
   db_save: "Database save failed",
@@ -119,6 +135,11 @@ export type ErrorCode =
   | "QUESTION_SCHEMA_FAILED"
   | "QUESTION_DB_SAVE_FAILED"
   | "FINAL_REASONING_FAILED"
+  | "FINAL_DIAGNOSIS_AI_FAILED"
+  | "FINAL_DIAGNOSIS_NORMALIZATION_FAILED"
+  | "FINAL_DIAGNOSIS_SCHEMA_FAILED"
+  | "FINAL_DIAGNOSIS_CONFIDENCE_FAILED"
+  | "FINAL_DIAGNOSIS_SAVE_FAILED"
   | "CONFIDENCE_FAILED"
   | "TREATMENT_FAILED"
   | "DATABASE_SAVE_FAILED"
@@ -143,6 +164,10 @@ export const STAGE_CODE: Record<ScanStage, ErrorCode> = {
   question_validation: "QUESTION_SCHEMA_FAILED",
   question_db_save: "QUESTION_DB_SAVE_FAILED",
   final_diagnosis: "FINAL_REASONING_FAILED",
+  final_ai_response: "FINAL_DIAGNOSIS_AI_FAILED",
+  final_normalization: "FINAL_DIAGNOSIS_NORMALIZATION_FAILED",
+  final_validation: "FINAL_DIAGNOSIS_SCHEMA_FAILED",
+  final_db_save: "FINAL_DIAGNOSIS_SAVE_FAILED",
   confidence: "CONFIDENCE_FAILED",
   treatment: "TREATMENT_FAILED",
   db_save: "DATABASE_SAVE_FAILED",
@@ -241,6 +266,30 @@ export const RECOVERY: Record<ErrorCode, { causes: string[]; action: string }> =
     causes: ["Image analysis missing", "Model returned invalid question set"],
     action: "Retry question generation; you can also skip questions and diagnose.",
   },
+  FINAL_DIAGNOSIS_AI_FAILED: {
+    causes: ["Gateway error or timeout", "Rate limit / credits", "Fusion prompt too large"],
+    action: "Retry the final diagnosis — images, analysis and answers are already saved.",
+  },
+  FINAL_DIAGNOSIS_NORMALIZATION_FAILED: {
+    causes: [
+      "Reply was prose or markdown instead of JSON",
+      "No diagnosis name in the reply",
+      "Truncated output",
+    ],
+    action: "Retry; inspect the raw final response below to see the shape returned.",
+  },
+  FINAL_DIAGNOSIS_SCHEMA_FAILED: {
+    causes: ["Normalized object still misses a required field", "Value outside the allowed range"],
+    action: "Retry; compare the normalized response with the canonical contract below.",
+  },
+  FINAL_DIAGNOSIS_CONFIDENCE_FAILED: {
+    causes: ["Non-numeric confidence after normalization"],
+    action: "Retry the final diagnosis stage.",
+  },
+  FINAL_DIAGNOSIS_SAVE_FAILED: {
+    causes: ["RLS blocked the write", "Column type mismatch", "Scan row deleted"],
+    action: "Retry the save — the diagnosis is already computed.",
+  },
   FINAL_REASONING_FAILED: {
     causes: ["Fusion prompt too large", "Gateway error", "Schema mismatch"],
     action: "Retry the fusion stage; reduce knowledge chunks if it repeats.",
@@ -316,6 +365,9 @@ export type RawPayloads = {
   normalizedResponse?: string;
   questionResponse?: string;
   normalizedQuestions?: string;
+  finalResponse?: string;
+  normalizedFinal?: string;
+  confidenceTrace?: string;
 
   knowledgeChunks?: string;
   weatherResponse?: string;
