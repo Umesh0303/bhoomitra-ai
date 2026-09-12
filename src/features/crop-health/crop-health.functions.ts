@@ -13,8 +13,20 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { BHOOMITRA_CHAT_MODEL } from "@/lib/ai-config";
 import { findCropTemplate, stageForDay } from "@/lib/calendar/crop-stages";
-import { calibrateConfidence, isUncertain, type EvidenceSources } from "./confidence";
+import {
+  calibrateConfidence,
+  confidenceCap,
+  isUncertain,
+  type EvidenceSources,
+} from "./confidence";
 import type { ScanDebug } from "./diagnostics";
+import {
+  CANONICAL_FUSION_JSON,
+  FusionSchema,
+  extractFinalJson,
+  normalizeFinalDiagnosisResponse,
+  validateFinalDiagnosis,
+} from "./final-diagnosis-normalize";
 import {
   CANONICAL_VISION_JSON,
   extractJson,
@@ -34,121 +46,9 @@ import type {
   WeatherSnapshot,
 } from "./types";
 
-const SEVERITY = z.enum(["none", "low", "moderate", "high", "severe"]);
-const RISK = z.enum(["low", "medium", "high"]);
-const DTYPE = z.enum([
-  "fungal",
-  "bacterial",
-  "viral",
-  "pest",
-  "nutrient",
-  "water_stress",
-  "heat_damage",
-  "cold_damage",
-  "physical_injury",
-  "healthy",
-  "unknown",
-]);
-
-const CandidateSchema = z.object({
-  name: z.string(),
-  scientificName: z.string().optional().default(""),
-  type: DTYPE,
-  confidence: z.number().min(0).max(100),
-  rationale: z.string(),
-});
-
-// Vision output contract lives in vision-normalize.ts (canonical schema +
-// normalization layer) so the model and the app share one definition.
-
+// Vision output contract lives in vision-normalize.ts.
 // Question output contract lives in question-normalize.ts.
-
-const EvidenceItemSchema = z.object({
-  text: z.string(),
-  supports: z.string().optional().default(""),
-  weight: z.enum(["weak", "moderate", "strong"]).optional().default("moderate"),
-});
-
-const TreatmentSchema = z.object({
-  name: z.string(),
-  how: z.string(),
-  dosage: z.string().optional().default(""),
-  interval: z.string().optional().default(""),
-  safetyNotes: z.string().optional().default(""),
-  expectedSuccess: z.number().min(0).max(100),
-});
-
-const FusionSchema = z.object({
-  diagnosis: z.object({
-    name: z.string(),
-    scientificName: z.string().optional().default(""),
-    type: DTYPE,
-    severity: SEVERITY,
-    affectedParts: z.array(z.string()).default([]),
-    symptoms: z.array(z.string()).default([]),
-    cause: z.string(),
-    estimatedSpread: z.string(),
-    yieldImpact: z.string(),
-    riskLevel: RISK,
-    recoveryProbability: z.number().min(0).max(100),
-  }),
-  confidence: z.number().min(0).max(100),
-  uncertain: z.boolean(),
-  evidence: z.object({
-    image: z.array(EvidenceItemSchema).default([]),
-    answers: z.array(EvidenceItemSchema).default([]),
-    weather: z.array(EvidenceItemSchema).default([]),
-    farm: z.array(EvidenceItemSchema).default([]),
-    knowledge: z.array(EvidenceItemSchema).default([]),
-  }),
-  reasoning: z.string(),
-  differential: z.object({
-    alsoConsider: z
-      .array(z.object({ name: z.string(), confidence: z.number(), note: z.string() }))
-      .default([]),
-    ruledOut: z.array(z.object({ name: z.string(), reason: z.string() })).default([]),
-  }),
-  missingEvidence: z.array(z.string()).default([]),
-  progression: z.object({
-    stage: z.enum(["early", "developing", "advanced", "late", "unknown"]),
-    affectedAreaPct: z.number().min(0).max(100),
-    progressionRisk: RISK,
-    timeSinceInfection: z.string(),
-  }),
-  treatmentPlan: z.object({
-    organic: z.array(TreatmentSchema).default([]),
-    chemical: z.array(TreatmentSchema).default([]),
-    cultural: z.array(TreatmentSchema).default([]),
-    preventive: z.array(TreatmentSchema).default([]),
-    sprayInterval: z.string().optional().default(""),
-    safetySummary: z.string().optional().default(""),
-  }),
-  weatherRisk: z.object({
-    level: RISK,
-    futureRisk: RISK,
-    factors: z.array(z.string()).default([]),
-    explanation: z.string(),
-  }),
-  healthScore: z.object({
-    overall: z.number().min(0).max(100),
-    leafHealth: z.number().min(0).max(100),
-    diseaseRisk: RISK,
-    waterStress: RISK,
-    nutrientStatus: z.enum(["good", "fair", "poor"]),
-    growthStatus: z.string(),
-  }),
-  alerts: z
-    .array(
-      z.object({
-        severity: z.enum(["info", "warning", "critical"]),
-        title: z.string(),
-        message: z.string(),
-        action: z.string().optional().default(""),
-      }),
-    )
-    .default([]),
-  followUpDays: z.number().min(1).max(30).default(6),
-});
+// Final diagnosis contract (FusionSchema) lives in final-diagnosis-normalize.ts.
 
 // ---------------------------------------------------------------- helpers
 
@@ -737,7 +637,9 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     }
 
     const { buildFusionPrompt } = await import("./prompts.server");
-    let fused: z.infer<typeof FusionSchema>;
+
+    // 1) Ask the model (plain text — the normalizer owns the shape contract).
+    let rawText = "";
     const t0 = Date.now();
     try {
       const system = buildFusionPrompt({
@@ -750,17 +652,14 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       });
       tracker.debug.vision.promptChars = system.length;
       tracker.raw("visionRequest", { model: BHOOMITRA_CHAT_MODEL, systemChars: system.length });
-      tracker.raw(
-        "expectedSchema",
-        "FusionSchema: diagnosis{...}, confidence, uncertain, evidence{image,answers,weather,farm,knowledge}, reasoning, differential, missingEvidence[], progression, treatmentPlan{organic,chemical,cultural,preventive}, weatherRisk, healthScore, alerts[], followUpDays",
-      );
-      const result = await generateObject({
+      tracker.raw("expectedSchema", CANONICAL_FUSION_JSON);
+      const result = await generateText({
         model: provider,
-        schema: FusionSchema,
         system,
-        prompt: "Fuse all evidence and produce the final diagnosis now.",
+        prompt:
+          "Fuse all evidence and produce the final diagnosis now. Return ONLY the canonical JSON object.",
       });
-      fused = result.object;
+      rawText = result.text ?? "";
       const ms = Date.now() - t0;
       tracker.set("gatewayStatus", "200");
       Object.assign(tracker.debug.vision, {
@@ -772,18 +671,41 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
         requestId: (result.response as { id?: string } | undefined)?.id ?? null,
       });
       tracker.perf("reasoningMs", ms);
-      tracker.raw("visionResponse", fused);
+      tracker.raw("finalResponse", rawText);
       tracker.ok("ai_response", ms);
-      tracker.ok("json_parse", 0, "schema validated");
-      tracker.ok("final_diagnosis", 0, fused.diagnosis?.name ?? "unnamed");
+      tracker.ok("final_ai_response", ms, `${rawText.length} chars`);
     } catch (err) {
       const stage = aiStage(err);
       throw tracker.recordFailure(
-        stage === "ai_request" ? "final_diagnosis" : stage,
+        stage === "ai_request" || stage === "ai_response" ? "final_ai_response" : stage,
         err,
         Date.now() - t0,
       );
     }
+
+    // 2) Normalize BEFORE validation.
+    let normalized: unknown;
+    const tNorm = Date.now();
+    try {
+      normalized = normalizeFinalDiagnosisResponse(extractFinalJson(rawText));
+      tracker.raw("normalizedFinal", normalized);
+      tracker.ok("final_normalization", Date.now() - tNorm, "canonical shape built");
+    } catch (err) {
+      throw tracker.recordFailure("final_normalization", err, Date.now() - tNorm);
+    }
+
+    // 3) Validate the canonical object.
+    let fused: z.infer<typeof FusionSchema>;
+    const tVal = Date.now();
+    try {
+      fused = validateFinalDiagnosis(normalized);
+      tracker.ok("final_validation", Date.now() - tVal, fused.diagnosis.name);
+      tracker.ok("json_parse", 0, "schema validated");
+      tracker.ok("final_diagnosis", 0, fused.diagnosis.name);
+    } catch (err) {
+      throw tracker.recordFailure("final_validation", err, Date.now() - tVal);
+    }
+
 
     const answered = questions.filter((q) => q.answer && q.answer.trim().length > 0).length;
     const sources: EvidenceSources = {
@@ -800,10 +722,23 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
         const value = calibrateConfidence(fused.confidence, sources);
         if (!Number.isFinite(value))
           throw new Error("Calibration produced a non-numeric confidence");
+        tracker.raw("confidenceTrace", {
+          confidenceBefore: fused.confidence,
+          confidenceAfter: value,
+          confidenceCap: confidenceCap(sources),
+          evidenceSourcesUsed: sources,
+          answersUsed: questions
+            .filter((q) => q.answer)
+            .map((q) => `${q.question} → ${q.answer}`),
+          candidateRanking: analysis.candidates.map(
+            (c: Candidate) => `${c.name} ${c.confidence}%`,
+          ),
+        });
         return value;
       },
-      (c) => `${fused.confidence}% raw → ${c}% calibrated`,
+      (c) => `${fused.confidence}% raw → ${c}% calibrated (cap ${confidenceCap(sources)}%)`,
     );
+
     const uncertain = fused.uncertain || isUncertain(confidence);
 
     const plan = fused.treatmentPlan;
@@ -819,7 +754,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       citations: knowledge.citations,
     };
 
-    await tracker.run("db_save", async () => {
+    await tracker.run("final_db_save", async () => {
       const { error } = await ctx.supabase
         .from("crop_scans")
         .update({

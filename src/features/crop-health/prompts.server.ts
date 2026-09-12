@@ -186,6 +186,23 @@ Fusion rules:
 - Return an overall crop health score, not just a disease label.
 - confidence is your raw belief 0-100; the application applies its own caps.
 
+OUTPUT CONTRACT — return ONE JSON object with exactly these top-level keys and
+nothing else (no markdown fences, no prose, no wrapper):
+diagnosis{name, scientificName, type, severity, affectedParts[], symptoms[],
+cause, estimatedSpread, yieldImpact, riskLevel, recoveryProbability},
+confidence, uncertain, evidence{image[],answers[],weather[],farm[],knowledge[]},
+reasoning, differential{alsoConsider[],ruledOut[]}, missingEvidence[],
+progression{stage,affectedAreaPct,progressionRisk,timeSinceInfection},
+treatmentPlan{organic[],chemical[],cultural[],preventive[],sprayInterval,safetySummary},
+weatherRisk{level,futureRisk,factors[],explanation},
+healthScore{overall,leafHealth,diseaseRisk,waterStress,nutrientStatus,growthStatus},
+alerts[], followUpDays.
+Do NOT nest the diagnosis under "most_likely" and do NOT use snake_case keys.
+type must be one of: fungal, bacterial, viral, pest, nutrient, water_stress,
+heat_damage, cold_damage, physical_injury, healthy, unknown.
+Never invent a chemical dosage: if you cannot state a label-verified rate, say
+to follow the product label instead.
+
 <image_findings>
 Crop: ${analysis.crop}
 Parts: ${analysis.plantParts.join(", ")}
