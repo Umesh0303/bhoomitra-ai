@@ -16,6 +16,13 @@ import { findCropTemplate, stageForDay } from "@/lib/calendar/crop-stages";
 import { calibrateConfidence, isUncertain, type EvidenceSources } from "./confidence";
 import type { ScanDebug } from "./diagnostics";
 import {
+  CANONICAL_FUSION_JSON,
+  FusionSchema,
+  extractFinalJson,
+  normalizeFinalDiagnosisResponse,
+  validateFinalDiagnosis,
+} from "./final-diagnosis-normalize";
+import {
   CANONICAL_VISION_JSON,
   extractJson,
   normalizeVisionResponse,
@@ -34,121 +41,9 @@ import type {
   WeatherSnapshot,
 } from "./types";
 
-const SEVERITY = z.enum(["none", "low", "moderate", "high", "severe"]);
-const RISK = z.enum(["low", "medium", "high"]);
-const DTYPE = z.enum([
-  "fungal",
-  "bacterial",
-  "viral",
-  "pest",
-  "nutrient",
-  "water_stress",
-  "heat_damage",
-  "cold_damage",
-  "physical_injury",
-  "healthy",
-  "unknown",
-]);
-
-const CandidateSchema = z.object({
-  name: z.string(),
-  scientificName: z.string().optional().default(""),
-  type: DTYPE,
-  confidence: z.number().min(0).max(100),
-  rationale: z.string(),
-});
-
-// Vision output contract lives in vision-normalize.ts (canonical schema +
-// normalization layer) so the model and the app share one definition.
-
+// Vision output contract lives in vision-normalize.ts.
 // Question output contract lives in question-normalize.ts.
-
-const EvidenceItemSchema = z.object({
-  text: z.string(),
-  supports: z.string().optional().default(""),
-  weight: z.enum(["weak", "moderate", "strong"]).optional().default("moderate"),
-});
-
-const TreatmentSchema = z.object({
-  name: z.string(),
-  how: z.string(),
-  dosage: z.string().optional().default(""),
-  interval: z.string().optional().default(""),
-  safetyNotes: z.string().optional().default(""),
-  expectedSuccess: z.number().min(0).max(100),
-});
-
-const FusionSchema = z.object({
-  diagnosis: z.object({
-    name: z.string(),
-    scientificName: z.string().optional().default(""),
-    type: DTYPE,
-    severity: SEVERITY,
-    affectedParts: z.array(z.string()).default([]),
-    symptoms: z.array(z.string()).default([]),
-    cause: z.string(),
-    estimatedSpread: z.string(),
-    yieldImpact: z.string(),
-    riskLevel: RISK,
-    recoveryProbability: z.number().min(0).max(100),
-  }),
-  confidence: z.number().min(0).max(100),
-  uncertain: z.boolean(),
-  evidence: z.object({
-    image: z.array(EvidenceItemSchema).default([]),
-    answers: z.array(EvidenceItemSchema).default([]),
-    weather: z.array(EvidenceItemSchema).default([]),
-    farm: z.array(EvidenceItemSchema).default([]),
-    knowledge: z.array(EvidenceItemSchema).default([]),
-  }),
-  reasoning: z.string(),
-  differential: z.object({
-    alsoConsider: z
-      .array(z.object({ name: z.string(), confidence: z.number(), note: z.string() }))
-      .default([]),
-    ruledOut: z.array(z.object({ name: z.string(), reason: z.string() })).default([]),
-  }),
-  missingEvidence: z.array(z.string()).default([]),
-  progression: z.object({
-    stage: z.enum(["early", "developing", "advanced", "late", "unknown"]),
-    affectedAreaPct: z.number().min(0).max(100),
-    progressionRisk: RISK,
-    timeSinceInfection: z.string(),
-  }),
-  treatmentPlan: z.object({
-    organic: z.array(TreatmentSchema).default([]),
-    chemical: z.array(TreatmentSchema).default([]),
-    cultural: z.array(TreatmentSchema).default([]),
-    preventive: z.array(TreatmentSchema).default([]),
-    sprayInterval: z.string().optional().default(""),
-    safetySummary: z.string().optional().default(""),
-  }),
-  weatherRisk: z.object({
-    level: RISK,
-    futureRisk: RISK,
-    factors: z.array(z.string()).default([]),
-    explanation: z.string(),
-  }),
-  healthScore: z.object({
-    overall: z.number().min(0).max(100),
-    leafHealth: z.number().min(0).max(100),
-    diseaseRisk: RISK,
-    waterStress: RISK,
-    nutrientStatus: z.enum(["good", "fair", "poor"]),
-    growthStatus: z.string(),
-  }),
-  alerts: z
-    .array(
-      z.object({
-        severity: z.enum(["info", "warning", "critical"]),
-        title: z.string(),
-        message: z.string(),
-        action: z.string().optional().default(""),
-      }),
-    )
-    .default([]),
-  followUpDays: z.number().min(1).max(30).default(6),
-});
+// Final diagnosis contract (FusionSchema) lives in final-diagnosis-normalize.ts.
 
 // ---------------------------------------------------------------- helpers
 
