@@ -202,6 +202,25 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
             </Card>
           )}
 
+          <Card title="Questions">
+            <ul className="space-y-1">
+              {d.stages
+                .filter((s) => s.stage.startsWith("question"))
+                .map((s, i) => (
+                  <StageRow key={`q-${i}`} s={s} slow={false} />
+                ))}
+              {!d.stages.some((s) => s.stage.startsWith("question")) && (
+                <li className="text-muted-foreground">No question stages recorded.</li>
+              )}
+            </ul>
+            {dev && d.raw.questionResponse && (
+              <Pre label="Question AI response (raw)" value={d.raw.questionResponse} />
+            )}
+            {dev && d.raw.normalizedQuestions && (
+              <Pre label="Normalized questions" value={d.raw.normalizedQuestions} />
+            )}
+          </Card>
+
           <Card title="Weather">
             <Row label="Loaded" value={d.weatherLoaded ? "yes" : "no"} />
             {dev && d.raw.weatherResponse && (
