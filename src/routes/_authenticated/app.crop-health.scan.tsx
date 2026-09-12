@@ -74,6 +74,18 @@ function friendlyFailure(payload: StageErrorPayload | null, fallback: string): s
   ) {
     return "Couldn't generate confirmation questions. Please retry.";
   }
+  if (
+    stage === "final_ai_response" ||
+    stage === "final_normalization" ||
+    stage === "final_validation" ||
+    stage === "final_db_save" ||
+    stage === "final_diagnosis" ||
+    stage === "confidence" ||
+    stage === "db_save"
+  ) {
+    return "Couldn't complete the disease assessment. Please retry.";
+  }
+
   if (stage === "ai_request" || stage === "ai_response" || stage === "json_parse") {
     return "Couldn't read the photos clearly. Please retry.";
   }
