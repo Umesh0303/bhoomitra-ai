@@ -62,6 +62,27 @@ export const Route = createFileRoute("/_authenticated/app/crop-health/scan")({
 
 type Step = "farm" | "photos" | "analyzing" | "questions" | "fusing";
 
+/** Farmer-facing copy — technical detail stays in the diagnostics console. */
+function friendlyFailure(payload: StageErrorPayload | null, fallback: string): string {
+  const stage = payload?.stage;
+  if (
+    stage === "question_ai_response" ||
+    stage === "question_normalization" ||
+    stage === "question_validation" ||
+    stage === "question_db_save" ||
+    stage === "questions"
+  ) {
+    return "Couldn't generate confirmation questions. Please retry.";
+  }
+  if (stage === "ai_request" || stage === "ai_response" || stage === "json_parse") {
+    return "Couldn't read the photos clearly. Please retry.";
+  }
+  if (stage === "image_compression" || stage === "images_uploaded" || stage === "signed_urls") {
+    return "Couldn't upload the photos. Check your connection and retry.";
+  }
+  return payload ? "Something went wrong. Please retry." : fallback;
+}
+
 function ScanWizard() {
   const navigate = useNavigate();
   const { data: farms = [], isLoading: farmsLoading } = useQuery({
@@ -134,11 +155,13 @@ function ScanWizard() {
     if (import.meta.env.DEV) {
       console.error("[crop-health] pipeline failure", { fallback, payload, error: err });
     }
-    const message = payload
-      ? stageErrorMessage(err)
-      : err instanceof Error
-        ? `${fallback}: ${err.message}`
-        : fallback;
+    const message = import.meta.env.DEV
+      ? payload
+        ? stageErrorMessage(err)
+        : err instanceof Error
+          ? `${fallback}: ${err.message}`
+          : fallback
+      : friendlyFailure(payload, fallback);
     toast.error(message);
   }
 
@@ -334,10 +357,13 @@ function ScanWizard() {
       {stageError && (
         <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
           <p className="font-semibold text-destructive">
-            {stageError.failure}
-            {stageError.status ? ` · HTTP ${stageError.status}` : ""}
+            {import.meta.env.DEV
+              ? `${stageError.failure}${stageError.status ? ` · HTTP ${stageError.status}` : ""}`
+              : friendlyFailure(stageError, "Something went wrong")}
           </p>
-          <p className="mt-1 text-muted-foreground">{stageError.message}</p>
+          {import.meta.env.DEV && (
+            <p className="mt-1 text-muted-foreground">{stageError.message}</p>
+          )}
         </div>
       )}
 
