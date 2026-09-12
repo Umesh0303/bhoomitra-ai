@@ -61,20 +61,7 @@ const CandidateSchema = z.object({
 // Vision output contract lives in vision-normalize.ts (canonical schema +
 // normalization layer) so the model and the app share one definition.
 
-const QuestionsSchema = z.object({
-  questions: z
-    .array(
-      z.object({
-        question: z.string(),
-        helpText: z.string().optional().default(""),
-        category: z.string().default("symptom"),
-        inputType: z.enum(["single", "multi"]).default("single"),
-        options: z.array(z.object({ label: z.string(), value: z.string() })).min(2),
-        targets: z.array(z.string()).default([]),
-      }),
-    )
-    .max(6),
-});
+// Question output contract lives in question-normalize.ts.
 
 const EvidenceItemSchema = z.object({
   text: z.string(),
@@ -515,7 +502,7 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
   .inputValidator((i: { scanId: string }) => i)
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
-    const { StageTracker, aiStage } = await import("./diagnostics.server");
+    const { StageTracker } = await import("./diagnostics.server");
     const tracker = new StageTracker({
       scanId: data.scanId,
       userId: ctx.userId,
