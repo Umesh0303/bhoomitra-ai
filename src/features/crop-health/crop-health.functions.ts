@@ -542,9 +542,18 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
     tracker.set("weatherLoaded", Boolean(weatherSnap?.available));
 
     const { buildQuestionsPrompt } = await import("./prompts.server");
+    const {
+      CANONICAL_QUESTIONS_JSON,
+      candidateNames,
+      extractQuestionJson,
+      normalizeQuestionResponse,
+      toScanQuestions,
+      validateQuestions,
+    } = await import("./question-normalize");
     const { provider } = await tracker.run("ai_request", async () => gatewayModel());
 
-    let questions: ScanQuestion[];
+    // 1) Ask the model (plain text — the normalizer owns the shape contract).
+    let rawText = "";
     const t0 = Date.now();
     try {
       const system = buildQuestionsPrompt(
@@ -553,17 +562,13 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
         analysis,
       );
       tracker.debug.vision.promptChars = system.length;
-      tracker.raw(
-        "expectedSchema",
-        "QuestionsSchema: questions[<=6]{question,helpText,category,inputType(single|multi),options[>=2]{label,value},targets[]}",
-      );
-      const result = await generateObject({
+      tracker.raw("expectedSchema", CANONICAL_QUESTIONS_JSON);
+      const result = await generateText({
         model: provider,
-        schema: QuestionsSchema,
         system,
-        prompt: "Generate the confirmation questions now.",
+        prompt: "Generate the confirmation questions now. Return ONLY the canonical JSON object.",
       });
-      questions = result.object.questions as ScanQuestion[];
+      rawText = result.text ?? "";
       const ms = Date.now() - t0;
       tracker.set("gatewayStatus", "200");
       Object.assign(tracker.debug.vision, {
@@ -575,19 +580,42 @@ export const generateScanQuestions = createServerFn({ method: "POST" })
         requestId: (result.response as { id?: string } | undefined)?.id ?? null,
       });
       tracker.perf("questionsMs", ms);
-      tracker.raw("visionResponse", questions);
-      tracker.ok("ai_response", ms);
-      tracker.ok("json_parse", 0, "schema validated");
-      tracker.ok("questions", 0, `${questions.length} questions`);
+      tracker.raw("questionResponse", rawText);
+      tracker.ok("question_ai_response", ms, `${rawText.length} chars`);
     } catch (err) {
-      throw tracker.recordFailure(
-        aiStage(err) === "ai_request" ? "questions" : aiStage(err),
-        err,
-        Date.now() - t0,
-      );
+      throw tracker.recordFailure("question_ai_response", err, Date.now() - t0);
     }
 
-    const saved = await tracker.run("db_save", async () => {
+    // 2) Normalize BEFORE validation (bare array, wrapper object, aliases).
+    let normalized: unknown;
+    const tNorm = Date.now();
+    try {
+      normalized = normalizeQuestionResponse(extractQuestionJson(rawText), {
+        candidateNames: candidateNames(analysis),
+        max: 6,
+      });
+      tracker.raw("normalizedQuestions", normalized);
+      tracker.ok(
+        "question_normalization",
+        Date.now() - tNorm,
+        `${(normalized as { questions: unknown[] }).questions.length} questions kept`,
+      );
+    } catch (err) {
+      throw tracker.recordFailure("question_normalization", err, Date.now() - tNorm);
+    }
+
+    // 3) Zod validation on the canonical shape.
+    let questions: ScanQuestion[];
+    const tVal = Date.now();
+    try {
+      questions = toScanQuestions(validateQuestions(normalized));
+      tracker.ok("question_validation", Date.now() - tVal, `${questions.length} questions valid`);
+      tracker.ok("questions", 0, `${questions.length} questions`);
+    } catch (err) {
+      throw tracker.recordFailure("question_validation", err, Date.now() - tVal);
+    }
+
+    const saved = await tracker.run("question_db_save", async () => {
       await ctx.supabase.from("crop_scan_questions").delete().eq("scan_id", data.scanId);
       const rows = questions.slice(0, 6).map((q, index) => ({
         scan_id: data.scanId,
