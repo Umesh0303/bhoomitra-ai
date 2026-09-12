@@ -221,6 +221,29 @@ export function ScanDebugPanel({ debug, error, onRetryStage, retryLabel }: Props
             )}
           </Card>
 
+          <Card title="Final diagnosis">
+            <ul className="space-y-1">
+              {d.stages
+                .filter((s) => s.stage.startsWith("final") || s.stage === "confidence")
+                .map((s, i) => (
+                  <StageRow key={`f-${i}`} s={s} slow={false} />
+                ))}
+              {!d.stages.some((s) => s.stage.startsWith("final")) && (
+                <li className="text-muted-foreground">No final diagnosis stages recorded.</li>
+              )}
+            </ul>
+            {dev && d.raw.finalResponse && (
+              <Pre label="Final diagnosis AI response (raw)" value={d.raw.finalResponse} />
+            )}
+            {dev && d.raw.normalizedFinal && (
+              <Pre label="Normalized final diagnosis" value={d.raw.normalizedFinal} />
+            )}
+            {dev && d.raw.confidenceTrace && (
+              <Pre label="Confidence enforcement" value={d.raw.confidenceTrace} />
+            )}
+          </Card>
+
+
           <Card title="Weather">
             <Row label="Loaded" value={d.weatherLoaded ? "yes" : "no"} />
             {dev && d.raw.weatherResponse && (
