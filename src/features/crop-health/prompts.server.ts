@@ -114,8 +114,28 @@ Rules:
 - If weather data already shows recent rainfall or high humidity, CONFIRM it
   ("We detected 42 mm of rain in the last 3 days — is that correct?") rather
   than asking whether it rained.
-- Each question must name which candidates it helps confirm or rule out.
+- Each question must name which candidates it helps confirm or rule out, using
+  the EXACT candidate names listed below — never invent or rename a candidate.
 - Use simple village-level language.
+
+OUTPUT CONTRACT — return EXACTLY ONE JSON object, nothing else:
+{
+  "questions": [
+    {
+      "question": "string",
+      "helpText": "string ('' if none)",
+      "category": "symptom | spread | history | environment | management",
+      "type": "yes_no | multiple_choice",
+      "options": ["2-5 short choices — use [] for yes_no questions"],
+      "confirms": ["exact candidate names this answer would confirm"],
+      "rulesOut": ["exact candidate names this answer would rule out"]
+    }
+  ]
+}
+- The top-level property MUST be "questions". NEVER return a bare array.
+- No markdown, no code fences, no text before or after the JSON.
+- For "yes_no" leave "options" empty — the app renders Yes / No / Not sure.
+- For "multiple_choice" give meaningful, mutually distinct choices.
 
 <candidates>
 ${analysis.candidates.map((c, i) => `${i + 1}. ${c.name} (${c.type}) — raw ${c.confidence}% — ${c.rationale}`).join("\n")}
