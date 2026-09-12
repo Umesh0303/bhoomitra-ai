@@ -711,16 +711,30 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       hasKnowledge: knowledge.citations.length > 0,
       imageQualityOk: analysis.imageQuality?.usable !== false,
     };
+    const { confidenceCap } = await import("./confidence");
     const confidence = await tracker.run(
       "confidence",
       async () => {
         const value = calibrateConfidence(fused.confidence, sources);
         if (!Number.isFinite(value))
           throw new Error("Calibration produced a non-numeric confidence");
+        tracker.raw("confidenceTrace", {
+          confidenceBefore: fused.confidence,
+          confidenceAfter: value,
+          confidenceCap: confidenceCap(sources),
+          evidenceSourcesUsed: sources,
+          answersUsed: questions
+            .filter((q) => q.answer)
+            .map((q) => `${q.question} → ${q.answer}`),
+          candidateRanking: analysis.candidates.map(
+            (c: Candidate) => `${c.name} ${c.confidence}%`,
+          ),
+        });
         return value;
       },
-      (c) => `${fused.confidence}% raw → ${c}% calibrated`,
+      (c) => `${fused.confidence}% raw → ${c}% calibrated (cap ${confidenceCap(sources)}%)`,
     );
+
     const uncertain = fused.uncertain || isUncertain(confidence);
 
     const plan = fused.treatmentPlan;
