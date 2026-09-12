@@ -13,7 +13,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { BHOOMITRA_CHAT_MODEL } from "@/lib/ai-config";
 import { findCropTemplate, stageForDay } from "@/lib/calendar/crop-stages";
-import { calibrateConfidence, isUncertain, type EvidenceSources } from "./confidence";
+import {
+  calibrateConfidence,
+  confidenceCap,
+  isUncertain,
+  type EvidenceSources,
+} from "./confidence";
 import type { ScanDebug } from "./diagnostics";
 import {
   CANONICAL_FUSION_JSON,
@@ -711,7 +716,6 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       hasKnowledge: knowledge.citations.length > 0,
       imageQualityOk: analysis.imageQuality?.usable !== false,
     };
-    const { confidenceCap } = await import("./confidence");
     const confidence = await tracker.run(
       "confidence",
       async () => {
@@ -750,7 +754,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       citations: knowledge.citations,
     };
 
-    await tracker.run("db_save", async () => {
+    await tracker.run("final_db_save", async () => {
       const { error } = await ctx.supabase
         .from("crop_scans")
         .update({
