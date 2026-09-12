@@ -314,6 +314,8 @@ export type RawPayloads = {
   visionRequest?: string;
   visionResponse?: string;
   normalizedResponse?: string;
+  questionResponse?: string;
+  normalizedQuestions?: string;
 
   knowledgeChunks?: string;
   weatherResponse?: string;
