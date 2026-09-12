@@ -1,36 +1,39 @@
-# Fix: confirmation questions fail before reaching the farmer
+# Fix: final diagnosis step rejects the AI's answer shape
 
-The photo analysis now works. The step that writes the follow-up questions still fails, so the scan stops there.
+Photos, candidates, questions and answers all work. The last step — the full diagnosis — fails because the AI returns its answer in a different layout than the app expects, and the app checks the shape before adjusting it.
 
 ## What is actually happening (confirmed by reading the code)
 
-The question step does **not** use any normalization layer. It calls the AI with a strict structured-output request (`generateObject` with `QuestionsSchema` in `crop-health.functions.ts`, lines 560-565), so the model's answer is validated the instant it arrives. The model replies with a plain list of questions instead of an object wrapping a `questions` list, and validation rejects it with "Expected object, received array". The earlier normalization work was done for the image step only (`vision-normalize.ts`); nothing equivalent exists for questions.
+`fuseScanEvidence` in `crop-health.functions.ts` (lines 757-762) calls the model with `generateObject` and `FusionSchema`, so the reply is validated the instant it arrives. The model nests the result under `diagnosis.most_likely` and uses snake_case names (`confidence_score`, `disease_progression`, `treatment_plan`, `weather_impact`, `crop_health_score`), so validation fails. No normalization layer exists for this step — only the image and question steps have one.
 
-The diagnostics console also reuses the image step's labels, which is why the failure is shown as a generic "JSON validation" and looks like a vision problem.
+One extra mismatch to handle: the app stores the health score as an object (`overall`, `leafHealth`, `diseaseRisk`, `waterStress`, `nutrientStatus`, `growthStatus`), while the model returned a plain number. The layer will accept either and fill the object from the number without inventing sub-scores it cannot derive.
 
 ## The fix
 
-1. **New shared layer** `src/features/crop-health/question-normalize.ts`, mirroring the existing vision layer:
-   - `normalizeQuestionResponse(raw)` accepts a bare list, an object with `questions`, or common wrappers, and always returns one canonical object.
-   - Field aliasing: `helps_confirm` → confirms/targets, `helps_rule_out` → rules-out/targets, `type`/`input_type` → `inputType` (`single`/`multi`), `help_text` → `helpText`, `question`/`text` → `question`.
-   - Yes/no questions arrive with no options; the layer fills in Yes / No / Not sure so the existing question screen and database columns stay unchanged.
-   - Multiple-choice questions keep their real choices; entries with fewer than two usable choices are dropped.
-   - Caps the list at 6, keeping the ones that discriminate between the most candidates.
-   - Candidate names are passed through untouched.
-   - Canonical Zod schema lives here and runs **after** normalization; it returns field-level errors.
+1. **New shared layer** `src/features/crop-health/final-diagnosis-normalize.ts`, mirroring the vision and question layers:
+   - `extractFinalJson` (fences, object scan) and `normalizeFinalDiagnosisResponse(raw)` returning one canonical object.
+   - Mapping: `diagnosis.most_likely.name` → `diagnosis.name`, `most_likely.reasoning` → `reasoning`, `most_likely.supporting_evidence` → `evidence` (image_findings/farmer_answers/farm_context/weather/knowledge buckets), `confidence_score` → `confidence`, `uncertainty` → `uncertain`, `disease_progression` → `progression`, `treatment_plan` → `treatmentPlan`, `weather_impact` → `weatherRisk` (keeping `risk_change` and its reasoning), `crop_health_score` → `healthScore`, `also_consider`/`ruled_out` → `differential.alsoConsider`/`ruledOut`.
+   - Disease type derived from an explicit type field first, then keyword matching on the name/cause ("Thrips/Mite Infestation (Pest)" → `pest`), never the raw name; falls back to `unknown`.
+   - Severity taken only from the model's own severity wording; never derived from confidence. Unstated → `none`/`unknown`-safe default permitted by the existing schema.
+   - Safe fallbacks only where the schema requires a value: `scientificName` "Unknown", `affectedParts` [], `symptoms` [], `estimatedSpread`/`yieldImpact` "Unknown". No invented names, causes, percentages or dosages.
+   - Chemical treatments missing a verifiable dosage get the label-first wording instead of a fabricated rate, plus PPE / pre-harvest-interval / local-authority notes.
+   - Citations pass through untouched; empty stays empty.
+   - Canonical Zod schema (reusing the existing `FusionSchema` field definitions, no duplicate types) runs **after** normalization and returns field-level errors.
 
-2. **Wire it into the real path** in `crop-health.functions.ts` (`generateScanQuestions`): switch that one call from `generateObject` to `generateText` + extract JSON → normalize → validate → map to the internal `ScanQuestion[]`, exactly the pattern the image step already uses. Nothing downstream (database insert, question screen, evidence fusion) changes.
+2. **Wire it into the real path** in `fuseScanEvidence`: switch that one call from `generateObject` to `generateText` → extract → normalize → validate → map to `FusionResult`. Everything downstream (confidence calibration, treatment count, database update, report screen) is unchanged. Evidence fusion reasoning, farmer answers and alternative diagnoses are preserved as returned.
 
-3. **Prompt** (`prompts.server.ts`, `buildQuestionsPrompt` only): state the exact object shape to return, one JSON object with a top-level `questions` property, no markdown, no prose. The normalization layer stays regardless, since model output still varies.
+3. **Confidence** stays enforced in code after normalization via the existing `calibrateConfidence` caps (85 / 95 / 99, never 100). Diagnostics record the value before and after the cap.
 
-4. **Diagnostics**: add four dedicated stages — Question AI response, Question normalization, Question JSON validation, Question database save — with their own failure codes `QUESTION_NORMALIZATION_FAILED` and `QUESTION_SCHEMA_FAILED`, plus recovery hints. Question failures stop being labelled as vision failures. Raw and normalized responses are recorded for development only.
+4. **Prompt** (`prompts.server.ts`, `buildFusionPrompt` only): state the exact canonical object to return, one JSON object, no markdown or prose. The normalization layer stays regardless.
 
-5. **What the farmer sees**: on failure, "Couldn't generate confirmation questions. Please retry." with a retry button. Raw payloads and stack traces stay inside the developer diagnostics console.
+5. **Diagnostics**: dedicated stages — Final diagnosis AI response, Final diagnosis normalization, Final diagnosis JSON validation, Confidence enforcement, Final diagnosis database save — with codes `FINAL_DIAGNOSIS_NORMALIZATION_FAILED`, `FINAL_DIAGNOSIS_SCHEMA_FAILED`, `FINAL_DIAGNOSIS_CONFIDENCE_FAILED`, `FINAL_DIAGNOSIS_SAVE_FAILED` and recovery hints. Raw and normalized payloads, validation errors, confidence before/after, candidate ranking and the farmer answers used are shown in the developer console only.
+
+6. **What the farmer sees**: on failure, "Couldn't complete the disease assessment. Please retry." with a retry button; no raw payloads or internal field names. On success the existing report screen renders as today, including the uncertainty note when confidence is low.
 
 ## Untouched
 
-Image analysis, evidence fusion, farms, weather, calendar, knowledge base, assistant, the AI model, and all database tables.
+Image analysis, question generation, farms, weather, calendar, knowledge base, assistant, the AI model, and all database tables.
 
 ## Verification
 
-Type check and production build, then a fresh Chilli scan through to the question screen: the console should show Question normalization and Question JSON validation succeeding with 4-6 questions saved.
+Type check and production build, then a fresh Chilli scan end to end: the console should show final diagnosis normalization, validation, confidence enforcement and save all succeeding, and the report should open.
