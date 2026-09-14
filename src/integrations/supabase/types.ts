@@ -311,6 +311,445 @@ export type Database = {
           },
         ]
       }
+      disease_case_images: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          image_order: number
+          image_type: string
+          quality_score: number | null
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          image_order?: number
+          image_type?: string
+          quality_score?: number | null
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          image_order?: number
+          image_type?: string
+          quality_score?: number | null
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_case_images_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_case_outcomes: {
+        Row: {
+          case_id: string
+          created_at: string
+          days_after_treatment: number | null
+          farmer_confirmed_disease: string | null
+          farmer_notes: string | null
+          followup_images: Json
+          id: string
+          outcome: string
+          severity_after: string | null
+          treatment_details: string | null
+          treatment_followed: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          days_after_treatment?: number | null
+          farmer_confirmed_disease?: string | null
+          farmer_notes?: string | null
+          followup_images?: Json
+          id?: string
+          outcome?: string
+          severity_after?: string | null
+          treatment_details?: string | null
+          treatment_followed?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          days_after_treatment?: number | null
+          farmer_confirmed_disease?: string | null
+          farmer_notes?: string | null
+          followup_images?: Json
+          id?: string
+          outcome?: string
+          severity_after?: string | null
+          treatment_details?: string | null
+          treatment_followed?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_case_outcomes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_cases: {
+        Row: {
+          affected_part: string | null
+          ai_diagnosis: Json
+          case_status: string
+          confidence_after_answers: number | null
+          confidence_after_history: number | null
+          confidence_final: number | null
+          confidence_initial: number | null
+          created_at: string
+          crop_name: string
+          crop_stage: string | null
+          crop_variety: string | null
+          days_after_sowing: number | null
+          days_after_transplant: number | null
+          diagnostic_schema_version: string | null
+          farm_id: string | null
+          followup_answers: Json
+          followup_questions: Json
+          id: string
+          image_count: number
+          irrigation_context: Json
+          location_lat: number | null
+          location_lng: number | null
+          location_name: string | null
+          model_name: string | null
+          model_version: string | null
+          promoted_at: string | null
+          prompt_version: string | null
+          recommended_treatment: Json
+          scan_id: string | null
+          soil_context: Json
+          symptoms: string[]
+          updated_at: string
+          user_id: string
+          validation_status: string
+          weather_context: Json
+        }
+        Insert: {
+          affected_part?: string | null
+          ai_diagnosis?: Json
+          case_status?: string
+          confidence_after_answers?: number | null
+          confidence_after_history?: number | null
+          confidence_final?: number | null
+          confidence_initial?: number | null
+          created_at?: string
+          crop_name?: string
+          crop_stage?: string | null
+          crop_variety?: string | null
+          days_after_sowing?: number | null
+          days_after_transplant?: number | null
+          diagnostic_schema_version?: string | null
+          farm_id?: string | null
+          followup_answers?: Json
+          followup_questions?: Json
+          id?: string
+          image_count?: number
+          irrigation_context?: Json
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          model_name?: string | null
+          model_version?: string | null
+          promoted_at?: string | null
+          prompt_version?: string | null
+          recommended_treatment?: Json
+          scan_id?: string | null
+          soil_context?: Json
+          symptoms?: string[]
+          updated_at?: string
+          user_id: string
+          validation_status?: string
+          weather_context?: Json
+        }
+        Update: {
+          affected_part?: string | null
+          ai_diagnosis?: Json
+          case_status?: string
+          confidence_after_answers?: number | null
+          confidence_after_history?: number | null
+          confidence_final?: number | null
+          confidence_initial?: number | null
+          created_at?: string
+          crop_name?: string
+          crop_stage?: string | null
+          crop_variety?: string | null
+          days_after_sowing?: number | null
+          days_after_transplant?: number | null
+          diagnostic_schema_version?: string | null
+          farm_id?: string | null
+          followup_answers?: Json
+          followup_questions?: Json
+          id?: string
+          image_count?: number
+          irrigation_context?: Json
+          location_lat?: number | null
+          location_lng?: number | null
+          location_name?: string | null
+          model_name?: string | null
+          model_version?: string | null
+          promoted_at?: string | null
+          prompt_version?: string | null
+          recommended_treatment?: Json
+          scan_id?: string | null
+          soil_context?: Json
+          symptoms?: string[]
+          updated_at?: string
+          user_id?: string
+          validation_status?: string
+          weather_context?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_cases_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disease_cases_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: true
+            referencedRelation: "crop_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_feedback: {
+        Row: {
+          case_id: string
+          created_at: string
+          diagnosis_rating: string
+          farmer_notes: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          diagnosis_rating: string
+          farmer_notes?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          diagnosis_rating?: string
+          farmer_notes?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_feedback_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_knowledge: {
+        Row: {
+          affected_parts: string[]
+          confidence_score: number
+          created_at: string
+          crop_name: string
+          crop_stage: string | null
+          diagnostic_evidence: string
+          disease_name: string
+          embedding: string | null
+          evidence_count: number
+          id: string
+          indexing_status: string
+          knowledge_text: string
+          knowledge_version: number
+          last_validated_at: string | null
+          model_version: string | null
+          prevention_guidance: string
+          regional_context: Json
+          soil_conditions: Json
+          source_case_count: number
+          source_case_id: string | null
+          symptoms: string[]
+          treatment_guidance: string
+          treatment_success_rate: number | null
+          updated_at: string
+          validation_status: string
+          visual_features: string[]
+          weather_conditions: Json
+        }
+        Insert: {
+          affected_parts?: string[]
+          confidence_score?: number
+          created_at?: string
+          crop_name: string
+          crop_stage?: string | null
+          diagnostic_evidence?: string
+          disease_name: string
+          embedding?: string | null
+          evidence_count?: number
+          id?: string
+          indexing_status?: string
+          knowledge_text: string
+          knowledge_version?: number
+          last_validated_at?: string | null
+          model_version?: string | null
+          prevention_guidance?: string
+          regional_context?: Json
+          soil_conditions?: Json
+          source_case_count?: number
+          source_case_id?: string | null
+          symptoms?: string[]
+          treatment_guidance?: string
+          treatment_success_rate?: number | null
+          updated_at?: string
+          validation_status?: string
+          visual_features?: string[]
+          weather_conditions?: Json
+        }
+        Update: {
+          affected_parts?: string[]
+          confidence_score?: number
+          created_at?: string
+          crop_name?: string
+          crop_stage?: string | null
+          diagnostic_evidence?: string
+          disease_name?: string
+          embedding?: string | null
+          evidence_count?: number
+          id?: string
+          indexing_status?: string
+          knowledge_text?: string
+          knowledge_version?: number
+          last_validated_at?: string | null
+          model_version?: string | null
+          prevention_guidance?: string
+          regional_context?: Json
+          soil_conditions?: Json
+          source_case_count?: number
+          source_case_id?: string | null
+          symptoms?: string[]
+          treatment_guidance?: string
+          treatment_success_rate?: number | null
+          updated_at?: string
+          validation_status?: string
+          visual_features?: string[]
+          weather_conditions?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_knowledge_source_case_id_fkey"
+            columns: ["source_case_id"]
+            isOneToOne: false
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_knowledge_sources: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          knowledge_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          knowledge_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          knowledge_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_knowledge_sources_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disease_knowledge_sources_knowledge_id_fkey"
+            columns: ["knowledge_id"]
+            isOneToOne: false
+            referencedRelation: "disease_knowledge"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_review: {
+        Row: {
+          case_id: string
+          corrected_disease: string | null
+          created_at: string
+          decision: string
+          id: string
+          reviewer_id: string
+          reviewer_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          corrected_disease?: string | null
+          created_at?: string
+          decision: string
+          id?: string
+          reviewer_id: string
+          reviewer_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          corrected_disease?: string | null
+          created_at?: string
+          decision?: string
+          id?: string
+          reviewer_id?: string
+          reviewer_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_review_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       farm_images: {
         Row: {
           created_at: string
@@ -664,6 +1103,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_settings: {
         Row: {
           auto_play: boolean
@@ -755,6 +1215,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_reviewer: { Args: { _user_id: string }; Returns: boolean }
+      match_disease_knowledge: {
+        Args: {
+          crop_filter?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          affected_parts: string[]
+          confidence_score: number
+          crop_name: string
+          crop_stage: string
+          disease_name: string
+          id: string
+          knowledge_text: string
+          similarity: number
+          source_case_count: number
+          symptoms: string[]
+          treatment_success_rate: number
+          validation_status: string
+        }[]
+      }
       match_knowledge_chunks: {
         Args: {
           match_count?: number
@@ -776,6 +1265,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "reviewer" | "user"
       knowledge_processing_status:
         | "uploading"
         | "queued"
@@ -917,6 +1407,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "reviewer", "user"],
       knowledge_processing_status: [
         "uploading",
         "queued",
