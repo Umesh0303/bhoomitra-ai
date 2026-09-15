@@ -153,9 +153,10 @@ export function buildFusionPrompt(args: {
   analysis: ImageAnalysis;
   questions: ScanQuestion[];
   knowledge: string;
+  historical?: string;
   previous?: { diagnosis: string; date: string; severity: string } | null;
 }): string {
-  const { farm, weather, analysis, questions, knowledge, previous } = args;
+  const { farm, weather, analysis, questions, knowledge, historical, previous } = args;
   const answers = questions
     .map((q) => `- ${q.question} → ${q.answer ?? "not answered"}`)
     .join("\n");
@@ -175,6 +176,10 @@ Fusion rules:
   source you actually used. Leave a source's list empty if it gave you nothing.
 - Only cite knowledge-base documents that appear in <knowledge_base>. If it is
   empty, return no citations.
+- <historical_cases> are validated past cases from other farms. Treat them as
+  supporting evidence only: they may raise or lower your confidence and inform
+  treatment choice, but they must NEVER override this scan's images or the
+  farmer's answers, and they are not citations.
 - If the evidence is thin or contradictory, keep confidence low, set uncertain
   to true, and list exactly which extra photos would resolve it.
 - Estimate disease progression stage, affected area and time since infection.
@@ -219,6 +224,9 @@ ${weatherBlock(weather)}
 <knowledge_base>
 ${knowledge || "(no documents matched)"}
 </knowledge_base>
+<historical_cases>
+${historical || "(no validated historical cases)"}
+</historical_cases>
 ${previous ? `<previous_scan>\n${previous.date}: ${previous.diagnosis} (severity ${previous.severity})\n</previous_scan>` : ""}`;
 }
 
