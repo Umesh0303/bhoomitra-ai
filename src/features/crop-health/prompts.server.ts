@@ -224,6 +224,9 @@ ${weatherBlock(weather)}
 <knowledge_base>
 ${knowledge || "(no documents matched)"}
 </knowledge_base>
+<historical_cases>
+${historical || "(no validated historical cases)"}
+</historical_cases>
 ${previous ? `<previous_scan>\n${previous.date}: ${previous.diagnosis} (severity ${previous.severity})\n</previous_scan>` : ""}`;
 }
 
