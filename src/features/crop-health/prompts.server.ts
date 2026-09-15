@@ -176,6 +176,10 @@ Fusion rules:
   source you actually used. Leave a source's list empty if it gave you nothing.
 - Only cite knowledge-base documents that appear in <knowledge_base>. If it is
   empty, return no citations.
+- <historical_cases> are validated past cases from other farms. Treat them as
+  supporting evidence only: they may raise or lower your confidence and inform
+  treatment choice, but they must NEVER override this scan's images or the
+  farmer's answers, and they are not citations.
 - If the evidence is thin or contradictory, keep confidence low, set uncertain
   to true, and list exactly which extra photos would resolve it.
 - Estimate disease progression stage, affected area and time since infection.
