@@ -620,6 +620,21 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
     tracker.raw("farmContext", farm);
     tracker.raw("weatherResponse", weather);
 
+    // Validated historical cases — supporting evidence only, never decisive.
+    const historical = await tracker.runSoft(
+      "knowledge",
+      async () => {
+        const { retrieveSimilarCases, formatSimilarCases } = await import(
+          "@/features/disease-intelligence/retrieval.server"
+        );
+        const cases = await retrieveSimilarCases(ctx, ragQuery, farm.crop ?? null, key);
+        return { text: formatSimilarCases(cases), count: cases.length };
+      },
+      { text: "", count: 0 },
+      (h) => `${h.count} validated historical cases`,
+    );
+    tracker.raw("historicalCases", historical.text);
+
     let previous: { diagnosis: string; date: string; severity: string } | null = null;
     if (scan.parent_scan_id) {
       const { data: prev } = await ctx.supabase
@@ -648,6 +663,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
         analysis,
         questions,
         knowledge: knowledge.text,
+        historical: historical.text,
         previous,
       });
       tracker.debug.vision.promptChars = system.length;
@@ -778,6 +794,25 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return true;
     });
+
+    // Disease Intelligence capture — additive and soft-failing: the farmer's
+    // diagnosis is already saved and must never depend on this.
+    try {
+      const { captureDiseaseCase } = await import(
+        "@/features/disease-intelligence/capture.server"
+      );
+      await captureDiseaseCase(ctx, {
+        scanId: data.scanId,
+        modelName: BHOOMITRA_CHAT_MODEL,
+        confidenceInitial: analysis.candidates?.[0]?.confidence ?? null,
+        confidenceAfterAnswers: fused.confidence,
+        confidenceAfterHistory: historical.count ? fused.confidence : null,
+        confidenceFinal: confidence,
+        historyUsed: historical.count,
+      });
+    } catch (err) {
+      console.error("[crop-health] disease case capture skipped", err);
+    }
 
     tracker.perf("fusionTotalMs", tracker.debug.totalMs);
     return { ...out, debug: tracker.debug };

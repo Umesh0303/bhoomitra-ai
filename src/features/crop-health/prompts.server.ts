@@ -153,9 +153,10 @@ export function buildFusionPrompt(args: {
   analysis: ImageAnalysis;
   questions: ScanQuestion[];
   knowledge: string;
+  historical?: string;
   previous?: { diagnosis: string; date: string; severity: string } | null;
 }): string {
-  const { farm, weather, analysis, questions, knowledge, previous } = args;
+  const { farm, weather, analysis, questions, knowledge, historical, previous } = args;
   const answers = questions
     .map((q) => `- ${q.question} → ${q.answer ?? "not answered"}`)
     .join("\n");
