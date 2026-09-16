@@ -41,6 +41,13 @@ const nav = [
   { to: "/app/settings", label: "Settings", icon: Settings },
 ] as const;
 
+/** Only shown to the team that verifies disease cases. */
+const REVIEWER_NAV = {
+  to: "/app/disease-intelligence",
+  label: "Disease Intelligence",
+  icon: Brain,
+} as const;
+
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
