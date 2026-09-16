@@ -207,6 +207,15 @@ function SidebarContent({
   pathname: string;
   onLogout: () => void;
 }) {
+  const roleFn = useServerFn(getMyDiseaseRole);
+  const { data: role } = useQuery({
+    queryKey: ["disease-role"],
+    queryFn: () => roleFn(),
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  });
+  const navItems = role?.reviewer ? [...nav, REVIEWER_NAV] : nav;
+
   return (
     <>
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
