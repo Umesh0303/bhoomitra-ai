@@ -370,6 +370,8 @@ export type RawPayloads = {
   confidenceTrace?: string;
 
   knowledgeChunks?: string;
+  /** Validated historical cases used as supporting evidence. */
+  historicalCases?: string;
   weatherResponse?: string;
   farmContext?: string;
   expectedSchema?: string;

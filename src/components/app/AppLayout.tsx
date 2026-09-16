@@ -16,14 +16,18 @@ import {
   Search,
   Sparkles,
   BookOpen,
+  Brain,
   User as UserIcon,
   CreditCard,
   LifeBuoy,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/services/authService";
+import { getMyDiseaseRole } from "@/features/disease-intelligence/disease-intelligence.functions";
 
 const nav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -36,6 +40,13 @@ const nav = [
   { to: "/app/knowledge", label: "Farm Knowledge", icon: BookOpen },
   { to: "/app/settings", label: "Settings", icon: Settings },
 ] as const;
+
+/** Only shown to the team that verifies disease cases. */
+const REVIEWER_NAV = {
+  to: "/app/disease-intelligence",
+  label: "Disease Intelligence",
+  icon: Brain,
+} as const;
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -196,6 +207,15 @@ function SidebarContent({
   pathname: string;
   onLogout: () => void;
 }) {
+  const roleFn = useServerFn(getMyDiseaseRole);
+  const { data: role } = useQuery({
+    queryKey: ["disease-role"],
+    queryFn: () => roleFn(),
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  });
+  const navItems = role?.reviewer ? [...nav, REVIEWER_NAV] : nav;
+
   return (
     <>
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
@@ -213,7 +233,7 @@ function SidebarContent({
         </button>
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {nav.map((item) => {
+        {navItems.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link

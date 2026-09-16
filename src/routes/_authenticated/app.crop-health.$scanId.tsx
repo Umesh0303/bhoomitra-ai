@@ -11,6 +11,7 @@ import {
   signScanImages,
 } from "@/features/crop-health/services/scan-client";
 import { createScanReminders } from "@/features/crop-health/crop-health.functions";
+import { CaseFeedbackCard } from "@/features/disease-intelligence/components/CaseFeedbackCard";
 
 export const Route = createFileRoute("/_authenticated/app/crop-health/$scanId")({
   component: ScanReportPage,
@@ -119,6 +120,7 @@ function ScanReportPage() {
   return (
     <div className="space-y-4">
       <ScanReport scan={data.scan} imageUrls={data.imageUrls} />
+      <CaseFeedbackCard scanId={scanId} />
       <div className="flex flex-wrap gap-2">
         <button
           onClick={schedule}

@@ -24,6 +24,7 @@ import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authenticated/app.reports'
 import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
 import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
+import { Route as AuthenticatedAppDiseaseIntelligenceRouteImport } from './routes/_authenticated/app.disease-intelligence'
 import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
 import { Route as AuthenticatedAppCropHealthRouteImport } from './routes/_authenticated/app.crop-health'
 import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
@@ -114,6 +115,12 @@ const AuthenticatedAppFarmsRoute = AuthenticatedAppFarmsRouteImport.update({
   path: '/farms',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppDiseaseIntelligenceRoute =
+  AuthenticatedAppDiseaseIntelligenceRouteImport.update({
+    id: '/disease-intelligence',
+    path: '/disease-intelligence',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppDashboardRoute =
   AuthenticatedAppDashboardRouteImport.update({
     id: '/dashboard',
@@ -207,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/crop-health': typeof AuthenticatedAppCropHealthRouteWithChildren
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/app/disease-intelligence': typeof AuthenticatedAppDiseaseIntelligenceRoute
   '/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
@@ -234,6 +242,7 @@ export interface FileRoutesByTo {
   '/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/app/disease-intelligence': typeof AuthenticatedAppDiseaseIntelligenceRoute
   '/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/app/reports': typeof AuthenticatedAppReportsRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
@@ -264,6 +273,7 @@ export interface FileRoutesById {
   '/_authenticated/app/coming-soon': typeof AuthenticatedAppComingSoonRoute
   '/_authenticated/app/crop-health': typeof AuthenticatedAppCropHealthRouteWithChildren
   '/_authenticated/app/dashboard': typeof AuthenticatedAppDashboardRoute
+  '/_authenticated/app/disease-intelligence': typeof AuthenticatedAppDiseaseIntelligenceRoute
   '/_authenticated/app/farms': typeof AuthenticatedAppFarmsRouteWithChildren
   '/_authenticated/app/knowledge': typeof AuthenticatedAppKnowledgeRoute
   '/_authenticated/app/reports': typeof AuthenticatedAppReportsRoute
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/app/coming-soon'
     | '/app/crop-health'
     | '/app/dashboard'
+    | '/app/disease-intelligence'
     | '/app/farms'
     | '/app/knowledge'
     | '/app/reports'
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/app/calendar'
     | '/app/coming-soon'
     | '/app/dashboard'
+    | '/app/disease-intelligence'
     | '/app/knowledge'
     | '/app/reports'
     | '/app/settings'
@@ -351,6 +363,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/coming-soon'
     | '/_authenticated/app/crop-health'
     | '/_authenticated/app/dashboard'
+    | '/_authenticated/app/disease-intelligence'
     | '/_authenticated/app/farms'
     | '/_authenticated/app/knowledge'
     | '/_authenticated/app/reports'
@@ -483,6 +496,13 @@ declare module '@tanstack/react-router' {
       path: '/farms'
       fullPath: '/app/farms'
       preLoaderRoute: typeof AuthenticatedAppFarmsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/disease-intelligence': {
+      id: '/_authenticated/app/disease-intelligence'
+      path: '/disease-intelligence'
+      fullPath: '/app/disease-intelligence'
+      preLoaderRoute: typeof AuthenticatedAppDiseaseIntelligenceRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/dashboard': {
@@ -626,6 +646,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppComingSoonRoute: typeof AuthenticatedAppComingSoonRoute
   AuthenticatedAppCropHealthRoute: typeof AuthenticatedAppCropHealthRouteWithChildren
   AuthenticatedAppDashboardRoute: typeof AuthenticatedAppDashboardRoute
+  AuthenticatedAppDiseaseIntelligenceRoute: typeof AuthenticatedAppDiseaseIntelligenceRoute
   AuthenticatedAppFarmsRoute: typeof AuthenticatedAppFarmsRouteWithChildren
   AuthenticatedAppKnowledgeRoute: typeof AuthenticatedAppKnowledgeRoute
   AuthenticatedAppReportsRoute: typeof AuthenticatedAppReportsRoute
@@ -640,6 +661,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppComingSoonRoute: AuthenticatedAppComingSoonRoute,
   AuthenticatedAppCropHealthRoute: AuthenticatedAppCropHealthRouteWithChildren,
   AuthenticatedAppDashboardRoute: AuthenticatedAppDashboardRoute,
+  AuthenticatedAppDiseaseIntelligenceRoute:
+    AuthenticatedAppDiseaseIntelligenceRoute,
   AuthenticatedAppFarmsRoute: AuthenticatedAppFarmsRouteWithChildren,
   AuthenticatedAppKnowledgeRoute: AuthenticatedAppKnowledgeRoute,
   AuthenticatedAppReportsRoute: AuthenticatedAppReportsRoute,

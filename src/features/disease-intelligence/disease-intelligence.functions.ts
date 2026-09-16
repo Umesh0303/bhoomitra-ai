@@ -237,7 +237,10 @@ export const getDiseaseAnalytics = createServerFn({ method: "GET" })
       farmerCorrected: ratings.filter((r: string) => r === "incorrect").length,
       knowledgeEntries: knowledgeEntries ?? 0,
       topDiseases: tally(
-        rows.map((r) => (r["ai_diagnosis"］ as never) ?? null),
+        rows.map((r) => {
+          const d = r["ai_diagnosis"] as { top_diagnosis?: { name?: string } } | null;
+          return d?.top_diagnosis?.name ?? null;
+        }),
       ),
       topCrops: tally(rows.map((r) => r["crop_name"])),
       regions: tally(rows.map((r) => r["location_name"])),
