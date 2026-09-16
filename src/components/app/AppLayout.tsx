@@ -16,14 +16,18 @@ import {
   Search,
   Sparkles,
   BookOpen,
+  Brain,
   User as UserIcon,
   CreditCard,
   LifeBuoy,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/services/authService";
+import { getMyDiseaseRole } from "@/features/disease-intelligence/disease-intelligence.functions";
 
 const nav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
