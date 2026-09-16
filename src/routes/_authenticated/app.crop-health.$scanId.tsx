@@ -120,6 +120,7 @@ function ScanReportPage() {
   return (
     <div className="space-y-4">
       <ScanReport scan={data.scan} imageUrls={data.imageUrls} />
+      <CaseFeedbackCard scanId={scanId} />
       <div className="flex flex-wrap gap-2">
         <button
           onClick={schedule}
