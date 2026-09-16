@@ -224,7 +224,7 @@ function SidebarContent({
         </button>
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {nav.map((item) => {
+        {navItems.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link
