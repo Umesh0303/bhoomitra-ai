@@ -11,6 +11,7 @@ import {
   signScanImages,
 } from "@/features/crop-health/services/scan-client";
 import { createScanReminders } from "@/features/crop-health/crop-health.functions";
+import { CaseFeedbackCard } from "@/features/disease-intelligence/components/CaseFeedbackCard";
 
 export const Route = createFileRoute("/_authenticated/app/crop-health/$scanId")({
   component: ScanReportPage,
