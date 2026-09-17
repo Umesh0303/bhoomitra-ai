@@ -586,20 +586,27 @@ export type Database = {
           disease_name: string
           embedding: string | null
           evidence_count: number
+          has_conflicting_evidence: boolean
           id: string
+          independent_source_count: number
           indexing_status: string
+          knowledge_status: string
           knowledge_text: string
           knowledge_version: number
           last_validated_at: string | null
           model_version: string | null
           prevention_guidance: string
+          quality_level: string | null
+          quality_score: number | null
           regional_context: Json
           soil_conditions: Json
           source_case_count: number
           source_case_id: string | null
+          status_reason: string | null
           symptoms: string[]
           treatment_guidance: string
           treatment_success_rate: number | null
+          unique_farm_count: number
           updated_at: string
           validation_status: string
           visual_features: string[]
@@ -615,20 +622,27 @@ export type Database = {
           disease_name: string
           embedding?: string | null
           evidence_count?: number
+          has_conflicting_evidence?: boolean
           id?: string
+          independent_source_count?: number
           indexing_status?: string
+          knowledge_status?: string
           knowledge_text: string
           knowledge_version?: number
           last_validated_at?: string | null
           model_version?: string | null
           prevention_guidance?: string
+          quality_level?: string | null
+          quality_score?: number | null
           regional_context?: Json
           soil_conditions?: Json
           source_case_count?: number
           source_case_id?: string | null
+          status_reason?: string | null
           symptoms?: string[]
           treatment_guidance?: string
           treatment_success_rate?: number | null
+          unique_farm_count?: number
           updated_at?: string
           validation_status?: string
           visual_features?: string[]
@@ -644,20 +658,27 @@ export type Database = {
           disease_name?: string
           embedding?: string | null
           evidence_count?: number
+          has_conflicting_evidence?: boolean
           id?: string
+          independent_source_count?: number
           indexing_status?: string
+          knowledge_status?: string
           knowledge_text?: string
           knowledge_version?: number
           last_validated_at?: string | null
           model_version?: string | null
           prevention_guidance?: string
+          quality_level?: string | null
+          quality_score?: number | null
           regional_context?: Json
           soil_conditions?: Json
           source_case_count?: number
           source_case_id?: string | null
+          status_reason?: string | null
           symptoms?: string[]
           treatment_guidance?: string
           treatment_success_rate?: number | null
+          unique_farm_count?: number
           updated_at?: string
           validation_status?: string
           visual_features?: string[]
@@ -709,13 +730,175 @@ export type Database = {
           },
         ]
       }
+      disease_knowledge_versions: {
+        Row: {
+          change_reason: string
+          created_at: string
+          id: string
+          knowledge_id: string
+          new_content: Json
+          previous_content: Json | null
+          quality_score: number | null
+          reviewer_id: string | null
+          version_number: number
+        }
+        Insert: {
+          change_reason: string
+          created_at?: string
+          id?: string
+          knowledge_id: string
+          new_content: Json
+          previous_content?: Json | null
+          quality_score?: number | null
+          reviewer_id?: string | null
+          version_number: number
+        }
+        Update: {
+          change_reason?: string
+          created_at?: string
+          id?: string
+          knowledge_id?: string
+          new_content?: Json
+          previous_content?: Json | null
+          quality_score?: number | null
+          reviewer_id?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_knowledge_versions_knowledge_id_fkey"
+            columns: ["knowledge_id"]
+            isOneToOne: false
+            referencedRelation: "disease_knowledge"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_quality_scores: {
+        Row: {
+          components: Json
+          config_version: string
+          confirmation_score: number
+          consistency_score: number
+          created_at: string
+          evidence_score: number
+          id: string
+          knowledge_id: string
+          outcome_score: number
+          quality_level: string
+          quality_score: number
+          supporting_cases_score: number
+          validation_score: number
+        }
+        Insert: {
+          components?: Json
+          config_version?: string
+          confirmation_score?: number
+          consistency_score?: number
+          created_at?: string
+          evidence_score?: number
+          id?: string
+          knowledge_id: string
+          outcome_score?: number
+          quality_level: string
+          quality_score: number
+          supporting_cases_score?: number
+          validation_score?: number
+        }
+        Update: {
+          components?: Json
+          config_version?: string
+          confirmation_score?: number
+          consistency_score?: number
+          created_at?: string
+          evidence_score?: number
+          id?: string
+          knowledge_id?: string
+          outcome_score?: number
+          quality_level?: string
+          quality_score?: number
+          supporting_cases_score?: number
+          validation_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_quality_scores_knowledge_id_fkey"
+            columns: ["knowledge_id"]
+            isOneToOne: false
+            referencedRelation: "disease_knowledge"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_retrieval_events: {
+        Row: {
+          case_id: string | null
+          created_at: string
+          diagnosis_changed: boolean | null
+          final_diagnosis: string | null
+          id: string
+          knowledge_ids: string[]
+          knowledge_used: boolean
+          retrieved_count: number
+          scan_id: string | null
+          similarities: number[]
+          user_id: string
+          validation_outcome: string | null
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string
+          diagnosis_changed?: boolean | null
+          final_diagnosis?: string | null
+          id?: string
+          knowledge_ids?: string[]
+          knowledge_used?: boolean
+          retrieved_count?: number
+          scan_id?: string | null
+          similarities?: number[]
+          user_id: string
+          validation_outcome?: string | null
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string
+          diagnosis_changed?: boolean | null
+          final_diagnosis?: string | null
+          id?: string
+          knowledge_ids?: string[]
+          knowledge_used?: boolean
+          retrieved_count?: number
+          scan_id?: string | null
+          similarities?: number[]
+          user_id?: string
+          validation_outcome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_retrieval_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disease_retrieval_events_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "crop_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disease_review: {
         Row: {
           case_id: string
           corrected_disease: string | null
           created_at: string
           decision: string
+          evidence: Json
           id: string
+          review_seconds: number | null
           reviewer_id: string
           reviewer_notes: string | null
           updated_at: string
@@ -725,7 +908,9 @@ export type Database = {
           corrected_disease?: string | null
           created_at?: string
           decision: string
+          evidence?: Json
           id?: string
+          review_seconds?: number | null
           reviewer_id: string
           reviewer_notes?: string | null
           updated_at?: string
@@ -735,7 +920,9 @@ export type Database = {
           corrected_disease?: string | null
           created_at?: string
           decision?: string
+          evidence?: Json
           id?: string
+          review_seconds?: number | null
           reviewer_id?: string
           reviewer_notes?: string | null
           updated_at?: string
@@ -743,6 +930,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "disease_review_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "disease_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disease_review_history: {
+        Row: {
+          actor_kind: string
+          case_id: string
+          created_at: string
+          decision: string | null
+          evidence: Json
+          id: string
+          new_disease: string | null
+          new_status: string
+          notes: string | null
+          previous_disease: string | null
+          previous_status: string | null
+          reason: string | null
+          reviewer_id: string | null
+        }
+        Insert: {
+          actor_kind?: string
+          case_id: string
+          created_at?: string
+          decision?: string | null
+          evidence?: Json
+          id?: string
+          new_disease?: string | null
+          new_status: string
+          notes?: string | null
+          previous_disease?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          reviewer_id?: string | null
+        }
+        Update: {
+          actor_kind?: string
+          case_id?: string
+          created_at?: string
+          decision?: string | null
+          evidence?: Json
+          id?: string
+          new_disease?: string | null
+          new_status?: string
+          notes?: string | null
+          previous_disease?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          reviewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disease_review_history_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "disease_cases"
