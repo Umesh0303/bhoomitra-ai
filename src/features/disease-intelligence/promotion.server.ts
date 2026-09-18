@@ -193,11 +193,24 @@ export async function evaluateAndPromoteCase(
 
   await indexKnowledgeEntry(knowledgeId, draft.knowledgeText);
 
+  // Transparent quality score + lifecycle status. Best-effort by design.
+  const { recalculateKnowledgeQuality } = await import("./quality.server");
+  const quality = await recalculateKnowledgeQuality(knowledgeId, {
+    reviewerId: opts.reviewVerified ? ctx.userId : null,
+    reason: opts.reviewVerified ? "Reviewer verification" : "New validated source case",
+  });
+
+  const filedName = opts.reviewerCorrection?.trim() || resolvedDiseaseName(caseLike, outcomeLike);
   return {
     promoted: true,
     knowledgeId,
     validationStatus,
-    reasons: [`Filed under ${resolvedDiseaseName(caseLike, outcomeLike)}`],
+    qualityScore: quality?.quality.score ?? null,
+    knowledgeStatus: quality?.status ?? null,
+    reasons: [
+      `Filed under ${filedName}`,
+      ...(quality ? [`${quality.quality.level} · quality ${quality.quality.score}/100`] : []),
+    ],
   };
 }
 
