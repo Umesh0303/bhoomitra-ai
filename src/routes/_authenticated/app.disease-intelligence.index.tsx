@@ -15,7 +15,7 @@ import {
 } from "@/features/disease-intelligence/disease-intelligence.functions";
 import { REVIEW_DECISIONS } from "@/features/disease-intelligence/types";
 
-export const Route = createFileRoute("/_authenticated/app/disease-intelligence")({
+export const Route = createFileRoute("/_authenticated/app/disease-intelligence/")({
   component: DiseaseIntelligencePage,
   head: () => ({
     meta: [
