@@ -806,7 +806,7 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
       const { captureDiseaseCase } = await import(
         "@/features/disease-intelligence/capture.server"
       );
-      await captureDiseaseCase(ctx, {
+      const caseId = await captureDiseaseCase(ctx, {
         scanId: data.scanId,
         modelName: BHOOMITRA_CHAT_MODEL,
         confidenceInitial: analysis.candidates?.[0]?.confidence ?? null,
@@ -814,6 +814,22 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
         confidenceAfterHistory: historical.count ? fused.confidence : null,
         confidenceFinal: confidence,
         historyUsed: historical.count,
+      });
+
+      // Retrieval analytics only — it can never change the diagnosis above.
+      await ctx.supabase.from("disease_retrieval_events").insert({
+        scan_id: data.scanId,
+        case_id: caseId,
+        user_id: ctx.userId,
+        knowledge_ids: historical.ids,
+        similarities: historical.similarities,
+        retrieved_count: historical.count,
+        knowledge_used: historical.count > 0,
+        final_diagnosis: out.diagnosis.name ?? null,
+        diagnosis_changed:
+          historical.count > 0 && analysis.candidates?.[0]?.name
+            ? analysis.candidates[0].name !== out.diagnosis.name
+            : null,
       });
     } catch (err) {
       console.error("[crop-health] disease case capture skipped", err);
