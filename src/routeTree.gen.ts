@@ -38,6 +38,7 @@ import { Route as AuthenticatedAppCropHealthHistoryRouteImport } from './routes/
 import { Route as AuthenticatedAppCropHealthScanIdRouteImport } from './routes/_authenticated/app.crop-health.$scanId'
 import { Route as AuthenticatedAppFarmsFarmIdIndexRouteImport } from './routes/_authenticated/app.farms.$farmId.index'
 import { Route as AuthenticatedAppFarmsFarmIdEditRouteImport } from './routes/_authenticated/app.farms.$farmId.edit'
+import { Route as AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport } from './routes/_authenticated/app.disease-intelligence.review.$caseId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -199,6 +200,12 @@ const AuthenticatedAppFarmsFarmIdEditRoute =
     path: '/$farmId/edit',
     getParentRoute: () => AuthenticatedAppFarmsRoute,
   } as any)
+const AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute =
+  AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport.update({
+    id: '/disease-intelligence/review/$caseId',
+    path: '/disease-intelligence/review/$caseId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/app/crop-health/': typeof AuthenticatedAppCropHealthIndexRoute
   '/app/disease-intelligence/': typeof AuthenticatedAppDiseaseIntelligenceIndexRoute
   '/app/farms/': typeof AuthenticatedAppFarmsIndexRoute
+  '/app/disease-intelligence/review/$caseId': typeof AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute
   '/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
   '/app/farms/$farmId/': typeof AuthenticatedAppFarmsFarmIdIndexRoute
 }
@@ -254,6 +262,7 @@ export interface FileRoutesByTo {
   '/app/crop-health': typeof AuthenticatedAppCropHealthIndexRoute
   '/app/disease-intelligence': typeof AuthenticatedAppDiseaseIntelligenceIndexRoute
   '/app/farms': typeof AuthenticatedAppFarmsIndexRoute
+  '/app/disease-intelligence/review/$caseId': typeof AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute
   '/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
   '/app/farms/$farmId': typeof AuthenticatedAppFarmsFarmIdIndexRoute
 }
@@ -286,6 +295,7 @@ export interface FileRoutesById {
   '/_authenticated/app/crop-health/': typeof AuthenticatedAppCropHealthIndexRoute
   '/_authenticated/app/disease-intelligence/': typeof AuthenticatedAppDiseaseIntelligenceIndexRoute
   '/_authenticated/app/farms/': typeof AuthenticatedAppFarmsIndexRoute
+  '/_authenticated/app/disease-intelligence/review/$caseId': typeof AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute
   '/_authenticated/app/farms/$farmId/edit': typeof AuthenticatedAppFarmsFarmIdEditRoute
   '/_authenticated/app/farms/$farmId/': typeof AuthenticatedAppFarmsFarmIdIndexRoute
 }
@@ -318,6 +328,7 @@ export interface FileRouteTypes {
     | '/app/crop-health/'
     | '/app/disease-intelligence/'
     | '/app/farms/'
+    | '/app/disease-intelligence/review/$caseId'
     | '/app/farms/$farmId/edit'
     | '/app/farms/$farmId/'
   fileRoutesByTo: FileRoutesByTo
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/app/crop-health'
     | '/app/disease-intelligence'
     | '/app/farms'
+    | '/app/disease-intelligence/review/$caseId'
     | '/app/farms/$farmId/edit'
     | '/app/farms/$farmId'
   id:
@@ -376,6 +388,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/crop-health/'
     | '/_authenticated/app/disease-intelligence/'
     | '/_authenticated/app/farms/'
+    | '/_authenticated/app/disease-intelligence/review/$caseId'
     | '/_authenticated/app/farms/$farmId/edit'
     | '/_authenticated/app/farms/$farmId/'
   fileRoutesById: FileRoutesById
@@ -596,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFarmsFarmIdEditRouteImport
       parentRoute: typeof AuthenticatedAppFarmsRoute
     }
+    '/_authenticated/app/disease-intelligence/review/$caseId': {
+      id: '/_authenticated/app/disease-intelligence/review/$caseId'
+      path: '/disease-intelligence/review/$caseId'
+      fullPath: '/app/disease-intelligence/review/$caseId'
+      preLoaderRoute: typeof AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
@@ -653,6 +673,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppWeatherRoute: typeof AuthenticatedAppWeatherRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppDiseaseIntelligenceIndexRoute: typeof AuthenticatedAppDiseaseIntelligenceIndexRoute
+  AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute: typeof AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -669,6 +690,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppDiseaseIntelligenceIndexRoute:
     AuthenticatedAppDiseaseIntelligenceIndexRoute,
+  AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute:
+    AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
