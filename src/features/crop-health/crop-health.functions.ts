@@ -628,9 +628,14 @@ export const fuseScanEvidence = createServerFn({ method: "POST" })
           "@/features/disease-intelligence/retrieval.server"
         );
         const cases = await retrieveSimilarCases(ctx, ragQuery, farm.crop ?? null, key);
-        return { text: formatSimilarCases(cases), count: cases.length };
+        return {
+          text: formatSimilarCases(cases),
+          count: cases.length,
+          ids: cases.map((c) => c.id),
+          similarities: cases.map((c) => c.similarity),
+        };
       },
-      { text: "", count: 0 },
+      { text: "", count: 0, ids: [] as string[], similarities: [] as number[] },
       (h) => `${h.count} validated historical cases`,
     );
     tracker.raw("historicalCases", historical.text);
