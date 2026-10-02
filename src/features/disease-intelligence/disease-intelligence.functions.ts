@@ -151,7 +151,7 @@ export const listCasesForReview = createServerFn({ method: "POST" })
     }));
 
     const sort = data.sort ?? "needs_review";
-    const score = (c: (typeof enriched)[number]) => {
+    const score = (c: Record<string, any>) => {
       switch (sort) {
         case "low_confidence":
           return -(c["confidence_final"] ?? 101);

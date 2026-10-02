@@ -19,6 +19,8 @@ export type PromotionResult = {
   promoted: boolean;
   knowledgeId?: string;
   validationStatus: string;
+  qualityScore?: number | null;
+  knowledgeStatus?: string | null;
   reasons: string[];
 };
 
