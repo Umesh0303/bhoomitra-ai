@@ -89,12 +89,16 @@ export function CaseFeedbackCard({ scanId }: { scanId: string }) {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-border bg-card p-5">
-        <h2 className="flex items-center gap-2 font-display text-lg font-bold">
-          <MessageSquareHeart className="h-5 w-5 text-primary" /> Was this diagnosis right?
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+          {hasFeedback ? "Diagnosis feedback recorded" : "Help improve Bhoomitra AI"}
+        </p>
+        <h2 className="mt-1 flex items-center gap-2 font-display text-lg font-bold">
+          <MessageSquareHeart className="h-5 w-5 text-primary" /> Was this diagnosis correct?
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Your answer is only used to improve future diagnoses for this crop.
         </p>
+
 
         {hasFeedback ? (
           <p className="mt-4 flex items-center gap-2 text-sm font-medium text-primary">
@@ -143,12 +147,26 @@ export function CaseFeedbackCard({ scanId }: { scanId: string }) {
 
       {(hasFeedback || showOutcome) && (
         <div className="rounded-2xl border border-border bg-card p-5">
-          <h2 className="flex items-center gap-2 font-display text-lg font-bold">
-            <Sprout className="h-5 w-5 text-primary" /> How did the treatment go?
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+            {hasOutcome ? "Treatment outcome recorded" : "Treatment outcome not reported yet"}
+          </p>
+          <h2 className="mt-1 flex items-center gap-2 font-display text-lg font-bold">
+            <Sprout className="h-5 w-5 text-primary" /> How did the recommended treatment work?
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Come back after a few days and tell us what happened.
+            No hurry — come back after a few days and tell us what happened.
           </p>
+          {!hasOutcome && notTried && (
+            <p className="mt-4 rounded-xl bg-muted p-3 text-sm">
+              That's fine. Open this report again after you try the treatment and tell us how it went.
+              <button
+                onClick={() => setNotTried(false)}
+                className="ml-2 font-medium text-primary hover:underline"
+              >
+                Report now
+              </button>
+            </p>
+          )}
 
           {hasOutcome ? (
             <p className="mt-4 flex items-center gap-2 text-sm font-medium text-primary">
