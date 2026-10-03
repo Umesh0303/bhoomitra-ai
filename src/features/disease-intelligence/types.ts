@@ -27,15 +27,15 @@ export const TRUSTED_STATUSES: ValidationStatus[] = [
 ];
 
 export const DIAGNOSIS_RATINGS = [
-  { value: "correct", label: "Correct" },
-  { value: "partially_correct", label: "Partially correct" },
-  { value: "incorrect", label: "Incorrect" },
+  { value: "correct", label: "Yes" },
+  { value: "partially_correct", label: "Partially" },
+  { value: "incorrect", label: "No" },
   { value: "not_sure", label: "Not sure" },
 ] as const;
 export type DiagnosisRating = (typeof DIAGNOSIS_RATINGS)[number]["value"];
 
 export const OUTCOMES = [
-  { value: "fully_recovered", label: "Fully recovered" },
+  { value: "fully_recovered", label: "Fully improved" },
   { value: "improved", label: "Improved" },
   { value: "no_change", label: "No improvement" },
   { value: "worse", label: "Became worse" },
