@@ -9,54 +9,40 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
-import { Route as AuthenticatedAppAssistantRouteImport } from './routes/_authenticated/app.assistant'
-import { Route as AuthenticatedAppCalendarRouteImport } from './routes/_authenticated/app.calendar'
-import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
-import { Route as AuthenticatedAppCropHealthRouteImport } from './routes/_authenticated/app.crop-health'
-import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
-import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
-import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
-import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authenticated/app.reports'
-import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
 import { Route as AuthenticatedAppWeatherRouteImport } from './routes/_authenticated/app.weather'
-import { Route as AuthenticatedAppCropHealthIndexRouteImport } from './routes/_authenticated/app.crop-health.index'
-import { Route as AuthenticatedAppCropHealthScanIdRouteImport } from './routes/_authenticated/app.crop-health.$scanId'
-import { Route as AuthenticatedAppCropHealthHistoryRouteImport } from './routes/_authenticated/app.crop-health.history'
-import { Route as AuthenticatedAppCropHealthScanRouteImport } from './routes/_authenticated/app.crop-health.scan'
-import { Route as AuthenticatedAppDiseaseIntelligenceIndexRouteImport } from './routes/_authenticated/app.disease-intelligence.index'
+import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
+import { Route as AuthenticatedAppReportsRouteImport } from './routes/_authenticated/app.reports'
+import { Route as AuthenticatedAppKnowledgeRouteImport } from './routes/_authenticated/app.knowledge'
+import { Route as AuthenticatedAppFarmsRouteImport } from './routes/_authenticated/app.farms'
+import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/app.dashboard'
+import { Route as AuthenticatedAppCropHealthRouteImport } from './routes/_authenticated/app.crop-health'
+import { Route as AuthenticatedAppComingSoonRouteImport } from './routes/_authenticated/app.coming-soon'
+import { Route as AuthenticatedAppCalendarRouteImport } from './routes/_authenticated/app.calendar'
+import { Route as AuthenticatedAppAssistantRouteImport } from './routes/_authenticated/app.assistant'
 import { Route as AuthenticatedAppFarmsIndexRouteImport } from './routes/_authenticated/app.farms.index'
+import { Route as AuthenticatedAppDiseaseIntelligenceIndexRouteImport } from './routes/_authenticated/app.disease-intelligence.index'
+import { Route as AuthenticatedAppCropHealthIndexRouteImport } from './routes/_authenticated/app.crop-health.index'
 import { Route as AuthenticatedAppFarmsNewRouteImport } from './routes/_authenticated/app.farms.new'
-import { Route as AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport } from './routes/_authenticated/app.disease-intelligence.review.$caseId'
+import { Route as AuthenticatedAppCropHealthScanRouteImport } from './routes/_authenticated/app.crop-health.scan'
+import { Route as AuthenticatedAppCropHealthHistoryRouteImport } from './routes/_authenticated/app.crop-health.history'
+import { Route as AuthenticatedAppCropHealthScanIdRouteImport } from './routes/_authenticated/app.crop-health.$scanId'
 import { Route as AuthenticatedAppFarmsFarmIdIndexRouteImport } from './routes/_authenticated/app.farms.$farmId.index'
 import { Route as AuthenticatedAppFarmsFarmIdEditRouteImport } from './routes/_authenticated/app.farms.$farmId.edit'
+import { Route as AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport } from './routes/_authenticated/app.disease-intelligence.review.$caseId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -64,19 +50,23 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -84,55 +74,24 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppAssistantRoute =
-  AuthenticatedAppAssistantRouteImport.update({
-    id: '/assistant',
-    path: '/assistant',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppCalendarRoute =
-  AuthenticatedAppCalendarRouteImport.update({
-    id: '/calendar',
-    path: '/calendar',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppComingSoonRoute =
-  AuthenticatedAppComingSoonRouteImport.update({
-    id: '/coming-soon',
-    path: '/coming-soon',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppCropHealthRoute =
-  AuthenticatedAppCropHealthRouteImport.update({
-    id: '/crop-health',
-    path: '/crop-health',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppDashboardRoute =
-  AuthenticatedAppDashboardRouteImport.update({
-    id: '/dashboard',
-    path: '/dashboard',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppFarmsRoute = AuthenticatedAppFarmsRouteImport.update({
-  id: '/farms',
-  path: '/farms',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
-const AuthenticatedAppKnowledgeRoute =
-  AuthenticatedAppKnowledgeRouteImport.update({
-    id: '/knowledge',
-    path: '/knowledge',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppReportsRoute = AuthenticatedAppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
+const AuthenticatedAppWeatherRoute = AuthenticatedAppWeatherRouteImport.update({
+  id: '/weather',
+  path: '/weather',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppSettingsRoute =
@@ -141,39 +100,50 @@ const AuthenticatedAppSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppWeatherRoute = AuthenticatedAppWeatherRouteImport.update({
-  id: '/weather',
-  path: '/weather',
+const AuthenticatedAppReportsRoute = AuthenticatedAppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppCropHealthIndexRoute =
-  AuthenticatedAppCropHealthIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+const AuthenticatedAppKnowledgeRoute =
+  AuthenticatedAppKnowledgeRouteImport.update({
+    id: '/knowledge',
+    path: '/knowledge',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppCropHealthScanIdRoute =
-  AuthenticatedAppCropHealthScanIdRouteImport.update({
-    id: '/$scanId',
-    path: '/$scanId',
-    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+const AuthenticatedAppFarmsRoute = AuthenticatedAppFarmsRouteImport.update({
+  id: '/farms',
+  path: '/farms',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppDashboardRoute =
+  AuthenticatedAppDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppCropHealthHistoryRoute =
-  AuthenticatedAppCropHealthHistoryRouteImport.update({
-    id: '/history',
-    path: '/history',
-    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+const AuthenticatedAppCropHealthRoute =
+  AuthenticatedAppCropHealthRouteImport.update({
+    id: '/crop-health',
+    path: '/crop-health',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppCropHealthScanRoute =
-  AuthenticatedAppCropHealthScanRouteImport.update({
-    id: '/scan',
-    path: '/scan',
-    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+const AuthenticatedAppComingSoonRoute =
+  AuthenticatedAppComingSoonRouteImport.update({
+    id: '/coming-soon',
+    path: '/coming-soon',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppDiseaseIntelligenceIndexRoute =
-  AuthenticatedAppDiseaseIntelligenceIndexRouteImport.update({
-    id: '/disease-intelligence/',
-    path: '/disease-intelligence/',
+const AuthenticatedAppCalendarRoute =
+  AuthenticatedAppCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAssistantRoute =
+  AuthenticatedAppAssistantRouteImport.update({
+    id: '/assistant',
+    path: '/assistant',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppFarmsIndexRoute =
@@ -182,17 +152,41 @@ const AuthenticatedAppFarmsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedAppFarmsRoute,
   } as any)
+const AuthenticatedAppDiseaseIntelligenceIndexRoute =
+  AuthenticatedAppDiseaseIntelligenceIndexRouteImport.update({
+    id: '/disease-intelligence/',
+    path: '/disease-intelligence/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppCropHealthIndexRoute =
+  AuthenticatedAppCropHealthIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+  } as any)
 const AuthenticatedAppFarmsNewRoute =
   AuthenticatedAppFarmsNewRouteImport.update({
     id: '/new',
     path: '/new',
     getParentRoute: () => AuthenticatedAppFarmsRoute,
   } as any)
-const AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute =
-  AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport.update({
-    id: '/disease-intelligence/review/$caseId',
-    path: '/disease-intelligence/review/$caseId',
-    getParentRoute: () => AuthenticatedAppRoute,
+const AuthenticatedAppCropHealthScanRoute =
+  AuthenticatedAppCropHealthScanRouteImport.update({
+    id: '/scan',
+    path: '/scan',
+    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+  } as any)
+const AuthenticatedAppCropHealthHistoryRoute =
+  AuthenticatedAppCropHealthHistoryRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => AuthenticatedAppCropHealthRoute,
+  } as any)
+const AuthenticatedAppCropHealthScanIdRoute =
+  AuthenticatedAppCropHealthScanIdRouteImport.update({
+    id: '/$scanId',
+    path: '/$scanId',
+    getParentRoute: () => AuthenticatedAppCropHealthRoute,
   } as any)
 const AuthenticatedAppFarmsFarmIdIndexRoute =
   AuthenticatedAppFarmsFarmIdIndexRouteImport.update({
@@ -205,6 +199,12 @@ const AuthenticatedAppFarmsFarmIdEditRoute =
     id: '/$farmId/edit',
     path: '/$farmId/edit',
     getParentRoute: () => AuthenticatedAppFarmsRoute,
+  } as any)
+const AuthenticatedAppDiseaseIntelligenceReviewCaseIdRoute =
+  AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport.update({
+    id: '/disease-intelligence/review/$caseId',
+    path: '/disease-intelligence/review/$caseId',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -406,32 +406,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -441,25 +420,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/app': {
-      id: '/_authenticated/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AuthenticatedAppRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -469,74 +455,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app/': {
       id: '/_authenticated/app/'
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/assistant': {
-      id: '/_authenticated/app/assistant'
-      path: '/assistant'
-      fullPath: '/app/assistant'
-      preLoaderRoute: typeof AuthenticatedAppAssistantRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/calendar': {
-      id: '/_authenticated/app/calendar'
-      path: '/calendar'
-      fullPath: '/app/calendar'
-      preLoaderRoute: typeof AuthenticatedAppCalendarRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/coming-soon': {
-      id: '/_authenticated/app/coming-soon'
-      path: '/coming-soon'
-      fullPath: '/app/coming-soon'
-      preLoaderRoute: typeof AuthenticatedAppComingSoonRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/crop-health': {
-      id: '/_authenticated/app/crop-health'
-      path: '/crop-health'
-      fullPath: '/app/crop-health'
-      preLoaderRoute: typeof AuthenticatedAppCropHealthRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/dashboard': {
-      id: '/_authenticated/app/dashboard'
-      path: '/dashboard'
-      fullPath: '/app/dashboard'
-      preLoaderRoute: typeof AuthenticatedAppDashboardRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/farms': {
-      id: '/_authenticated/app/farms'
-      path: '/farms'
-      fullPath: '/app/farms'
-      preLoaderRoute: typeof AuthenticatedAppFarmsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/knowledge': {
-      id: '/_authenticated/app/knowledge'
-      path: '/knowledge'
-      fullPath: '/app/knowledge'
-      preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/reports': {
-      id: '/_authenticated/app/reports'
-      path: '/reports'
-      fullPath: '/app/reports'
-      preLoaderRoute: typeof AuthenticatedAppReportsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/settings': {
-      id: '/_authenticated/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/weather': {
@@ -546,39 +483,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppWeatherRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/crop-health/': {
-      id: '/_authenticated/app/crop-health/'
-      path: '/'
-      fullPath: '/app/crop-health/'
-      preLoaderRoute: typeof AuthenticatedAppCropHealthIndexRouteImport
-      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    '/_authenticated/app/settings': {
+      id: '/_authenticated/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/crop-health/$scanId': {
-      id: '/_authenticated/app/crop-health/$scanId'
-      path: '/$scanId'
-      fullPath: '/app/crop-health/$scanId'
-      preLoaderRoute: typeof AuthenticatedAppCropHealthScanIdRouteImport
-      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    '/_authenticated/app/reports': {
+      id: '/_authenticated/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AuthenticatedAppReportsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/crop-health/history': {
-      id: '/_authenticated/app/crop-health/history'
-      path: '/history'
-      fullPath: '/app/crop-health/history'
-      preLoaderRoute: typeof AuthenticatedAppCropHealthHistoryRouteImport
-      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    '/_authenticated/app/knowledge': {
+      id: '/_authenticated/app/knowledge'
+      path: '/knowledge'
+      fullPath: '/app/knowledge'
+      preLoaderRoute: typeof AuthenticatedAppKnowledgeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/crop-health/scan': {
-      id: '/_authenticated/app/crop-health/scan'
-      path: '/scan'
-      fullPath: '/app/crop-health/scan'
-      preLoaderRoute: typeof AuthenticatedAppCropHealthScanRouteImport
-      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    '/_authenticated/app/farms': {
+      id: '/_authenticated/app/farms'
+      path: '/farms'
+      fullPath: '/app/farms'
+      preLoaderRoute: typeof AuthenticatedAppFarmsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/disease-intelligence/': {
-      id: '/_authenticated/app/disease-intelligence/'
-      path: '/disease-intelligence'
-      fullPath: '/app/disease-intelligence/'
-      preLoaderRoute: typeof AuthenticatedAppDiseaseIntelligenceIndexRouteImport
+    '/_authenticated/app/dashboard': {
+      id: '/_authenticated/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AuthenticatedAppDashboardRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/crop-health': {
+      id: '/_authenticated/app/crop-health'
+      path: '/crop-health'
+      fullPath: '/app/crop-health'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/coming-soon': {
+      id: '/_authenticated/app/coming-soon'
+      path: '/coming-soon'
+      fullPath: '/app/coming-soon'
+      preLoaderRoute: typeof AuthenticatedAppComingSoonRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/calendar': {
+      id: '/_authenticated/app/calendar'
+      path: '/calendar'
+      fullPath: '/app/calendar'
+      preLoaderRoute: typeof AuthenticatedAppCalendarRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/assistant': {
+      id: '/_authenticated/app/assistant'
+      path: '/assistant'
+      fullPath: '/app/assistant'
+      preLoaderRoute: typeof AuthenticatedAppAssistantRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/farms/': {
@@ -588,6 +553,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFarmsIndexRouteImport
       parentRoute: typeof AuthenticatedAppFarmsRoute
     }
+    '/_authenticated/app/disease-intelligence/': {
+      id: '/_authenticated/app/disease-intelligence/'
+      path: '/disease-intelligence'
+      fullPath: '/app/disease-intelligence/'
+      preLoaderRoute: typeof AuthenticatedAppDiseaseIntelligenceIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/crop-health/': {
+      id: '/_authenticated/app/crop-health/'
+      path: '/'
+      fullPath: '/app/crop-health/'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthIndexRouteImport
+      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    }
     '/_authenticated/app/farms/new': {
       id: '/_authenticated/app/farms/new'
       path: '/new'
@@ -595,12 +574,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFarmsNewRouteImport
       parentRoute: typeof AuthenticatedAppFarmsRoute
     }
-    '/_authenticated/app/disease-intelligence/review/$caseId': {
-      id: '/_authenticated/app/disease-intelligence/review/$caseId'
-      path: '/disease-intelligence/review/$caseId'
-      fullPath: '/app/disease-intelligence/review/$caseId'
-      preLoaderRoute: typeof AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+    '/_authenticated/app/crop-health/scan': {
+      id: '/_authenticated/app/crop-health/scan'
+      path: '/scan'
+      fullPath: '/app/crop-health/scan'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthScanRouteImport
+      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    }
+    '/_authenticated/app/crop-health/history': {
+      id: '/_authenticated/app/crop-health/history'
+      path: '/history'
+      fullPath: '/app/crop-health/history'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthHistoryRouteImport
+      parentRoute: typeof AuthenticatedAppCropHealthRoute
+    }
+    '/_authenticated/app/crop-health/$scanId': {
+      id: '/_authenticated/app/crop-health/$scanId'
+      path: '/$scanId'
+      fullPath: '/app/crop-health/$scanId'
+      preLoaderRoute: typeof AuthenticatedAppCropHealthScanIdRouteImport
+      parentRoute: typeof AuthenticatedAppCropHealthRoute
     }
     '/_authenticated/app/farms/$farmId/': {
       id: '/_authenticated/app/farms/$farmId/'
@@ -615,6 +608,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/farms/$farmId/edit'
       preLoaderRoute: typeof AuthenticatedAppFarmsFarmIdEditRouteImport
       parentRoute: typeof AuthenticatedAppFarmsRoute
+    }
+    '/_authenticated/app/disease-intelligence/review/$caseId': {
+      id: '/_authenticated/app/disease-intelligence/review/$caseId'
+      path: '/disease-intelligence/review/$caseId'
+      fullPath: '/app/disease-intelligence/review/$caseId'
+      preLoaderRoute: typeof AuthenticatedAppDiseaseIntelligenceReviewCaseIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
