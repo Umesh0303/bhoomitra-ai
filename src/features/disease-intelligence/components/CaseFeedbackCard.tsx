@@ -36,6 +36,7 @@ export function CaseFeedbackCard({ scanId }: { scanId: string }) {
   const [confirmedDisease, setConfirmedDisease] = useState("");
   const [outcomeNotes, setOutcomeNotes] = useState("");
   const [savingOutcome, setSavingOutcome] = useState(false);
+  const [notTried, setNotTried] = useState(false);
 
   if (isLoading || !data?.case) return null;
   const caseId = data.case.id as string;
@@ -178,7 +179,7 @@ export function CaseFeedbackCard({ scanId }: { scanId: string }) {
                 ? " — this case now helps other farmers with the same crop."
                 : ""}
             </p>
-          ) : (
+          ) : notTried ? null : (
             <>
               <div className="mt-4 flex flex-wrap gap-2">
                 {OUTCOMES.map((o) => (
@@ -195,7 +196,14 @@ export function CaseFeedbackCard({ scanId }: { scanId: string }) {
                     {o.label}
                   </button>
                 ))}
+                <button
+                  onClick={() => setNotTried(true)}
+                  className="min-h-11 rounded-xl border border-dashed border-border px-4 text-sm font-medium text-muted-foreground hover:bg-muted"
+                >
+                  I haven't tried it yet
+                </button>
               </div>
+
 
               <label className="mt-3 flex items-center gap-2 text-sm">
                 <input
