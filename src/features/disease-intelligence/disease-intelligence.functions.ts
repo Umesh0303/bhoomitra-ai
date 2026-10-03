@@ -91,25 +91,74 @@ export const submitTreatmentOutcome = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as Ctx;
-    const { error } = await ctx.supabase.from("disease_case_outcomes").insert({
-      case_id: data.caseId,
-      user_id: ctx.userId,
-      treatment_followed: data.treatmentFollowed,
-      treatment_details: data.treatmentDetails ?? null,
-      days_after_treatment: data.daysAfterTreatment ?? null,
-      outcome: data.outcome,
-      severity_after: data.severityAfter ?? null,
-      farmer_confirmed_disease: data.confirmedDisease?.trim() || null,
-      farmer_notes: data.notes ?? null,
-      followup_images: (data.followupImages ?? []) as never,
-    });
-    if (error) throw new Error(error.message);
+    const { data: row, error } = await ctx.supabase
+      .from("disease_case_outcomes")
+      .insert({
+        case_id: data.caseId,
+        user_id: ctx.userId,
+        treatment_followed: data.treatmentFollowed,
+        treatment_details: data.treatmentDetails ?? null,
+        days_after_treatment: data.daysAfterTreatment ?? null,
+        outcome: data.outcome,
+        severity_after: data.severityAfter ?? null,
+        farmer_confirmed_disease: data.confirmedDisease?.trim() || null,
+        farmer_notes: data.notes ?? null,
+        followup_images: (data.followupImages ?? []) as never,
+      })
+      .select("id")
+      .single();
+    if (error) {
+      console.error("[disease-intelligence] outcome insert failed", error.message);
+      throw new Error("Could not save the outcome. Please try again.");
+    }
 
     const { evaluateAndPromoteCase } = await import("./promotion.server");
-    return await evaluateAndPromoteCase(ctx, data.caseId).catch((err) => {
+    const promotion = await evaluateAndPromoteCase(ctx, data.caseId).catch((err) => {
       console.error("[disease-intelligence] promotion after outcome failed", err);
       return { promoted: false, validationStatus: "unverified", reasons: [] };
     });
+    return { ...promotion, outcomeId: row.id as string };
+  });
+
+/**
+ * Attaches an already-uploaded follow-up photo to the farmer's own outcome.
+ * Appends only — original diagnostic images are never touched.
+ */
+export const attachFollowupPhoto = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: { outcomeId: string; path: string }) => {
+    if (typeof i?.outcomeId !== "string" || typeof i?.path !== "string") throw new Error("Invalid input");
+    if (i.path.length > 300 || i.path.includes("..")) throw new Error("Invalid path");
+    return i;
+  })
+  .handler(async ({ data, context }) => {
+    const ctx = context as unknown as Ctx;
+    if (!data.path.startsWith(`${ctx.userId}/followup/`)) throw new Error("Invalid path");
+    const { data: row, error } = await ctx.supabase
+      .from("disease_case_outcomes")
+      .select("id, case_id, followup_images")
+      .eq("id", data.outcomeId)
+      .eq("user_id", ctx.userId)
+      .maybeSingle();
+    if (error || !row) throw new Error("Outcome not found");
+    const existing = Array.isArray(row.followup_images) ? (row.followup_images as unknown[]) : [];
+    const next = [
+      ...existing,
+      {
+        path: data.path,
+        image_type: "treatment_followup",
+        case_id: row.case_id,
+        outcome_id: row.id,
+        created_at: new Date().toISOString(),
+      },
+    ];
+    const { error: upErr } = await ctx.supabase
+      .from("disease_case_outcomes")
+      .update({ followup_images: next as never })
+      .eq("id", row.id)
+      .eq("user_id", ctx.userId);
+    if (upErr) throw new Error("Could not attach the photo");
+    return { ok: true };
   });
 
 // ------------------------------------------------------------- reviewer side
@@ -216,7 +265,15 @@ export const getCaseDetail = createServerFn({ method: "POST" })
       ]);
 
     // Signed, short-lived URLs so reviewer access is explicit and temporary.
-    const paths = (images ?? []).map((i: { storage_path: string }) => i.storage_path);
+    const followupPaths = (outcomes ?? []).flatMap((o: any) =>
+      (Array.isArray(o.followup_images) ? o.followup_images : [])
+        .map((f: any) => (typeof f === "string" ? f : f?.path))
+        .filter((p: unknown): p is string => typeof p === "string"),
+    );
+    const paths = [
+      ...(images ?? []).map((i: { storage_path: string }) => i.storage_path),
+      ...followupPaths,
+    ];
     let imageUrls: Record<string, string> = {};
     if (paths.length) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
