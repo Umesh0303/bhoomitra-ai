@@ -300,6 +300,26 @@ function CaseReviewPage() {
           ]}
           empty="No farmer feedback or treatment outcome yet."
         />
+        {(() => {
+          const urls = (data?.outcomes ?? []).flatMap((o: any) =>
+            (Array.isArray(o.followup_images) ? o.followup_images : [])
+              .map((f: any) => data?.imageUrls?.[typeof f === "string" ? f : f?.path])
+              .filter(Boolean),
+          ) as string[];
+          if (!urls.length) return null;
+          return (
+            <div className="mt-4">
+              <p className="text-sm font-medium">Treatment follow-up photos</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {urls.map((u) => (
+                  <a key={u} href={u} target="_blank" rel="noreferrer">
+                    <img src={u} alt="Crop after treatment" className="h-28 w-28 rounded-xl object-cover" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </Section>
 
       <Section
