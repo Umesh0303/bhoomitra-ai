@@ -46,7 +46,12 @@ export async function recalculateKnowledgeQuality(
           )
           .in("id", caseIds)
       : { data: [] as Array<Record<string, any>> };
-    const caseRows = (cases ?? []) as Array<Record<string, any>>;
+    // Rejected source cases stay linked for history, but never add supporting
+    // evidence (confirmations, outcomes, farms) to trusted knowledge.
+    const caseRows = ((cases ?? []) as Array<Record<string, any>>).filter(
+      (c) => c["validation_status"] !== "rejected",
+    );
+    const activeIds = new Set(caseRows.map((c) => c["id"] as string));
 
     const [{ data: outcomes }, { data: feedback }, { data: reviews }] = await Promise.all([
       caseIds.length
@@ -63,16 +68,19 @@ export async function recalculateKnowledgeQuality(
         : Promise.resolve({ data: [] as any[] }),
     ]);
 
-    const outcomeList = (outcomes ?? []).map((o: { outcome: string }) => o.outcome);
+    const activeOutcomes = (outcomes ?? []).filter((o: { case_id: string }) =>
+      activeIds.has(o.case_id),
+    );
+    const outcomeList = activeOutcomes.map((o: { outcome: string }) => o.outcome);
     const caseIdsWithOutcome = new Set(
-      (outcomes ?? []).map((o: { case_id: string }) => o.case_id),
+      activeOutcomes.map((o: { case_id: string }) => o.case_id),
     );
 
-    const ratings = (feedback ?? []) as Array<{ diagnosis_rating: string }>;
-    const decisions = (reviews ?? []) as Array<{ decision: string }>;
+    const ratings = (feedback ?? []) as Array<{ case_id: string; diagnosis_rating: string }>;
+    const decisions = (reviews ?? []) as Array<{ case_id: string; decision: string }>;
     const confirmedCount =
-      ratings.filter((r) => r.diagnosis_rating === "correct").length +
-      decisions.filter((d) => d.decision === "verified").length;
+      ratings.filter((r) => r.diagnosis_rating === "correct" && activeIds.has(r.case_id)).length +
+      decisions.filter((d) => d.decision === "verified" && activeIds.has(d.case_id)).length;
     const contradictedCount =
       ratings.filter((r) => r.diagnosis_rating === "incorrect").length +
       decisions.filter((d) => d.decision === "incorrect").length;

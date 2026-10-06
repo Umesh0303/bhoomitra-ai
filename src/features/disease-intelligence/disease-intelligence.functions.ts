@@ -368,6 +368,24 @@ export const submitCaseReview = createServerFn({ method: "POST" })
         .from("disease_cases")
         .update({ validation_status: "rejected", case_status: "validated" })
         .eq("id", data.caseId);
+      // Best-effort: re-score any knowledge this case was already linked to,
+      // so rejected evidence stops supporting it. Never blocks the decision.
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: links } = await supabaseAdmin
+          .from("disease_knowledge_sources")
+          .select("knowledge_id")
+          .eq("case_id", data.caseId);
+        const { recalculateKnowledgeQuality } = await import("./quality.server");
+        for (const l of links ?? []) {
+          await recalculateKnowledgeQuality(l.knowledge_id as string, {
+            reviewerId: ctx.userId,
+            reason: "Linked case rejected by reviewer",
+          });
+        }
+      } catch (err) {
+        console.error("[disease-intelligence] re-score after rejection failed", err);
+      }
       result = {
         promoted: false,
         validationStatus: "rejected",

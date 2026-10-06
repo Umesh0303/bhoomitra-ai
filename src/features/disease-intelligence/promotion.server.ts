@@ -114,8 +114,21 @@ export async function evaluateAndPromoteCase(
   let knowledgeId: string;
 
   if (existing) {
-    const sourceCount = (existing["source_case_count"] ?? 1) + 1;
     knowledgeId = existing["id"];
+    // A repeat decision on an already-linked case is new history, not a new
+    // supporting case: count only distinct linked cases.
+    const { count: linkedCount } = await supabaseAdmin
+      .from("disease_knowledge_sources")
+      .select("case_id", { count: "exact", head: true })
+      .eq("knowledge_id", knowledgeId);
+    const { data: alreadyLinked } = await supabaseAdmin
+      .from("disease_knowledge_sources")
+      .select("id")
+      .eq("knowledge_id", knowledgeId)
+      .eq("case_id", caseId)
+      .maybeSingle();
+    const isNewSource = !alreadyLinked;
+    const sourceCount = Math.max(1, (linkedCount ?? 0) + (isNewSource ? 1 : 0));
     await supabaseAdmin
       .from("disease_knowledge")
       .update({
